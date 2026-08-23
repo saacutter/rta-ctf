@@ -1,0 +1,32 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define XOR_KEY = 0xD47A
+
+int do_work() {
+    char output[] = {
+        0xD4, 0x7A, 0xB2, 0x16, 0xB5, 0x1D, 0xAF, 0x19, 0xE0, 0x14, 
+        0xA0, 0x25, 0xBC, 0x4B, 0xB0, 0x49, 0x8B, 0x1C, 
+        0xA6, 0x4A, 0xB9, 0x25, 0xB9, 0x49, 0xF5, 0x4B, 
+        0xE5, 0x5B, 0xF5, 0x5B, 0xA9, 0x00
+    };
+
+    for (int i = 2; output[i] != 0x00; i++) {
+        printf("%c", output[i] ^ output[i % 2]);
+    }
+    printf("\n");
+    exit(0);
+}
+
+int main(int argc, char* argv[]) {
+    char password[20];
+
+    printf("Enter password: ");
+    scanf("%s", password);
+
+    if ((int) password[0] == 0x0) {
+        //do_work();
+    } else {
+        printf("Failure.");
+    }
+}
