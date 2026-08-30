@@ -27,7 +27,6 @@ int main() {
     char password[50];
     printf("Password: ");
     scanf("%49s", password);
-    password[49] = '\0';
 
     // Hash the password and convert it to a string
     long hashed = hash(password);
