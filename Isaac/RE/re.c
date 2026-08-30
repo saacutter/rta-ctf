@@ -1,3 +1,5 @@
+// Compile as gcc -o re re.c -static -static-libgcc
+
 #include <stdio.h>
 #include <stdlib.h>
 
