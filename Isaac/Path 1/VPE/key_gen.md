@@ -1,1 +1,0 @@
-The keys are generated using `ssh-keygen -t rsa -b 4096 -C ""`

@@ -1,3 +1,5 @@
+# The key is generated using ssh-keygen -t rsa -b 4096 -C "" -f <output>
+
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
