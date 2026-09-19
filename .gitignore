@@ -1,1 +1,9 @@
+# Virtual environment files
 **/.venv
+
+# LaTeX Compilation Files
+**/*.aux
+**/*.fdb_latexmk
+**/*.fls
+**/*.log
+**/*.synctex.gz

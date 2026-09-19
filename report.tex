@@ -1,0 +1,98 @@
+% Compile with pdflatex report.tex -o report.pdf --mathjax
+
+\documentclass{article}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{sectsty}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{enumerate}
+
+% Define header
+\title{\textbf{CITS3006 Project Task 1}}
+\author{
+    Senaya Wimalasena (24670672)\\
+    Dhul Ratnayaka Ratnayaka Mudiyanselage (24518484)\\
+    Zarin Tasnim (24315214)\\
+    Mohammad Haddadpour (24443565)\\
+    Isaac Rutter (24273992)
+}
+\date{}
+
+% Add page numbers to pages
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[R]{\thepage}                         % Add page numbers (right-aligned)
+\fancypagestyle{plain}{\fancyfoot[R]{\thepage}} % Right align page numbers for first page
+
+% Set tag properties
+\sectionfont{\fontsize{11}{12}\selectfont}  % \section font properties
+\titlespacing*{\section}{0pt}{*0}{0pt}      % \section spacing properties
+\titlespacing*{\subsection}{0pt}{0pt}{0pt}  % \subsection spacing properties
+\subsectionfont{\fontsize{9}{0}\selectfont} % \subsection font properties
+\setlength{\parskip}{1em}                   % \par size
+\renewcommand{\headrulewidth}{0pt}          % removes header from fancy page
+
+% Set tikz library properties
+\usetikzlibrary{automata, positioning, arrows}
+\tikzset{accepting/.style={accepting by double, double distance=1.8pt}}
+
+\begin{document}
+    \maketitle
+
+    \newpage
+
+    \section*{Introduction}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[height=15cm]{ExploitMap.png}
+    \end{figure}
+
+    \newpage
+
+    \section*{SQL Injection (Mohammad + Dhul)}
+
+    \newpage
+
+    \section*{Path 1}
+    \subsection*{\texttt{rip} Manipulation (Isaac)}
+
+    \subsection*{Cube Root RSA Attack}
+
+    \subsection*{\texttt{PATH} Hijacking (Isaac)}
+
+    \subsection*{Horizontal Privilege (Senaya)}
+
+    \subsection*{AI (Zarin)}
+
+    \subsection*{Reverse Engineering (Mohammad)}
+
+    \newpage
+
+    \section*{Path 2}
+    \subsection*{Web (Mohammad)}
+
+    \subsection*{Horizontal Privilege (Mohammad)}
+
+    \subsection*{Web (Senaya)}
+
+    \subsection*{Vertical Privilege (Senaya)}
+
+    \newpage
+
+    \section*{Path 3}
+    \subsection*{Packet Analysis (Zarin)}
+
+    \subsection*{Horizontal Privilege (Zarin)}
+
+    \subsection*{Network (Zarin)}
+
+    \subsection*{Network (Dhul)}
+
+    \subsection*{\texttt{rbp} Manipulation (Isaac)}
+
+    \subsection*{Vertical Privilege (Zarin)}
+\end{document}
