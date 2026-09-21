@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+PATH=/tmp:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+*/1 * * * * puser /bin/backup
