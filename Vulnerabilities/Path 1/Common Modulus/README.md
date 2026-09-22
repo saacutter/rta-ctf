@@ -26,7 +26,6 @@ e1 = 3
 c2 = 297771...598737
 e2 = 5
 
-# Adapted from https://susanou.github.io/Writeups/posts/RSA-Common-Modulus/
 s1 = pow(e1, -1, e2)
 s2 = (gcd(e1, e2) - e1*s1)//e2
 temp = pow(c2, -1, n)

@@ -11,6 +11,8 @@
 \usepackage{tikz}
 \usepackage{enumerate}
 
+\setlength{\parindent}{0pt} % Remove paragraph indenting
+
 % Define header
 \title{\textbf{CITS3006 Project Task 1}}
 \author{
@@ -59,8 +61,151 @@
 
     \section*{Path 1}
     \subsection*{\texttt{rip} Manipulation (Isaac)}
+        This vulnerability only requires \texttt{gef}, but \texttt{strings} and
+        \texttt{ghidra} may be useful too.
 
-    \subsection*{Common Modulus RSA Attack}
+        To begin, the binary can be inspected using \texttt{file\ re} to gain
+        some information about its structure and how it was compiled since this
+        could give us an indication of how it is vulnerable.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={file}]{Vulnerabilities/Path 1/RE/images/file.png}
+        \end{center}
+
+        The binary seems to be pretty standard. The only notable aspects are
+        that it is statically linked and not stripped, which could be exploited.
+        However, we need more information. To see what the binary actually does,
+        we can run it and see what happens.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={run}]{Vulnerabilities/Path 1/RE/images/run.png}
+        \end{center}
+
+        The binary asks for a password, and since we don't know what it is
+        returns failure. It is possible that the password has just been written
+        in plaintext in the binary, so we can dump the strings from the binary
+        to investigate. However, as the binary is statically linked, there is a
+        lot of noise in the binary. This dumps the strings from every single
+        library that has been compiled with the binary, which makes it hard to
+        determine what is unique to the binary and what was from a library. As
+        such, we need to take another approach. Using a debugger like
+        \texttt{gef} seems like the obvious next step, so we can try that. The
+        obvious thing to do would be to see what the \texttt{main} function
+        does, so that can be disassembled.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={main}]{Vulnerabilities/Path 1/RE/images/main.png}
+        \end{center}
+
+        From this disassembly, there doesn't seem to be anything of note.
+        There's only a \texttt{scanf} call and 2 \texttt{printf} calls (both of
+        which have already been seen) but nothing immediately jumps out. There
+        does seem to be a comparison at some point with the \texttt{je}
+        instruction, but no obvious comparison values. As there is nothing else
+        to go on, seeing what functions are in the program might be helpful -
+        nothing is called by \texttt{main()}, but that doesn't mean that there
+        isn't anything that could give a hint to the solution.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={functions}]{Vulnerabilities/Path 1/RE/images/functions.png}
+        \end{center}
+
+        The program, as expected, has a lot of functions due to the previously
+        identified static linking. However, after going through the whole list,
+        there is one function that stood out - \texttt{get\_flag()}. This is not
+        part of any library and not called by \texttt{main} so its purpose isn't
+        clear, but it's worth investigating. For now, disassembling it seems
+        like the natural next step.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={work}]{Vulnerabilities/Path 1/RE/images/flag.png}
+        \end{center}
+
+        This function seems to be doing quite a bit more work than
+        \texttt{main}. There are some \texttt{putchar} function calls, which
+        seems like a natural place for the flag to be. Although this function is
+        not called from \texttt{main}, it doesn't need to be. The \texttt{rip}
+        register, which stores the address for the next instruction to execute,
+        can be directly manipulated using \texttt{gef}. By setting \texttt{rip}
+        to the start of this function, we can execute the function and see what
+        it does.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={rip}]{Vulnerabilities/Path 1/RE/images/rip.png}
+        \end{center}
+
+        This prints the flag immediately with no other work required. This
+        function would have never been found without reverse engineering it, so
+        this binary has been completely reverse engineered.
+
+    \subsection*{Common Modulus RSA Attack (Isaac)}
+        For this task, the only thing that is provided is \texttt{rsa.enc},
+        which looks like the following.
+        \begin{verbatim}
+        n1 = 608274...712081
+
+        c1 = 201700...036721
+
+        e1 = 3
+
+        n2 = 608274...712081
+
+        c2 = 297771...598737
+
+        e2 = 5
+        \end{verbatim}
+
+        This includes 6 different values - \texttt{n1}, \texttt{c1},
+        \texttt{e1}, \texttt{n2}, \texttt{c2}, and \texttt{e2}. The file name
+        including \texttt{rsa} indicates that we are dealing with the RSA
+        encryption algorithm, which means we know what each of these values
+        represent. \texttt{c} is the ciphertext which we are trying to convert
+        into plaintext, and \texttt{n} and \texttt{e} are the public key
+        components. As there is nothing else to work on, we can assume that the
+        goal is to convert the ciphertext (\texttt{c}) into plaintext
+        (\texttt{m}).
+
+        One of the first things to notice about these values is that there is a
+        red herring - \texttt{n1} and \texttt{n2} are the same value. This is
+        important information because it narrows down what we can do with these
+        values. However, given that we have two different ciphertexts with the
+        same modulus \texttt{n}, it can be assumed that we are going to perform
+        a common modulus attack. As \texttt{e1} and \texttt{e2} are specifically
+        coprime, this possibility becomes even more likely.
+
+        Bezout's theorem can be used to decrypt the ciphertext to retrieve the
+        plaintext message. As we know that \texttt{e1} and \texttt{e2} are
+        coprime, then \texttt{gcd(e1,\ e2)\ =\ 1}. By Bezout's theorem, this can
+        be used to compute \texttt{m} from \texttt{c1} and \texttt{c2}.
+
+        \begin{verbatim}
+        from math import gcd
+
+        n = 608274...712081
+        c1 = 201700...036721
+        e1 = 3
+        c2 = 297771...598737
+        e2 = 5
+
+        s1 = pow(e1, -1, e2)
+        s2 = (gcd(e1, e2) - e1*s1)//e2
+        temp = pow(c2, -1, n)
+        m1 = pow(c1, s1, n)
+        m2 = pow(temp, -s2, n)
+        print((m1 * m2) % n)
+        \end{verbatim}
+
+        This results in the following value.
+
+        \begin{verbatim}
+        248553018214215493487040500207679911872168453218024546771910211720
+        406762531126531703938858752533393106709772827557749049521555884150
+        604259193594527423259444784382279526552592511932044342078635300729
+        270182794399218532493518987097151611922743079927408121530187350545
+        118718450517411631183686866066732804662224083035106567473238166691
+        830868904475417848555088722856249916463283456430566876009997435073
+        449383683873658844053220605377161746406258446444675544777485779366
+        541092562042762820615071010338311013119161809328197454123675748485
+        638053194585907067815386257709049773415511650831052108606440355750
+        96141973536633499558383
+        \end{verbatim}
+
+        Using the other value gained from the previous challenge, we can now
+        move onto the next challenge.
 
     \subsection*{\texttt{PATH} Hijacking (Isaac)}
 
@@ -93,6 +238,181 @@
     \subsection*{Network (Dhul)}
 
     \subsection*{\texttt{rbp} Manipulation (Isaac)}
+        This vulnerability is solved using \texttt{gef}. To begin, the program
+        must be called using \texttt{gef\ ./rand}. However, trying to run the
+        program at all leads to an error - the program uses the
+        \texttt{ptrace()} function to exit immediately if a debugger is detected
+        which is a common strategy used by programs.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={run}]{Vulnerabilities/Path 3/RE/images/run.png}
+        \end{center}
+
+        The program can still be disassembled using \texttt{disas\ main} to
+        inspect what it does. This is where the \texttt{ptrace} call in the
+        program can be found.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={ptrace}]{Vulnerabilities/Path 3/RE/images/ptrace.png}
+        \end{center}
+
+        If the binary's properties are checked using \texttt{file\ rand}, an
+        observer may notice that the binary is dynamically linked using the
+        system's libraries at runtime. This can be confirmed by looking at the
+        output of a statically linked binary, which explicitly says that.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={dll}]{Vulnerabilities/Path 3/RE/images/dll.png}
+        \end{center}
+
+        Although this makes the binary smaller since it doesn't have to include
+        any system functions, it becomes vulnerable to an \texttt{LD\_PRELOAD}
+        attack. \texttt{LD\_PRELOAD} is an environment variable which is used to
+        find shared libraries for system functions. This can be exploited by
+        writing a custom \texttt{ptrace} library routine that always returns 0
+        to bypass this debug check entirely. This is a simple C script that
+        defines the \texttt{ptrace} function, such as the following:
+
+        \begin{verbatim}
+        long ptrace(int request, int pid, void *addr, void *data) {
+            return 0;
+        }
+        \end{verbatim}
+
+        To make this available as a shared library, it can be compiled as
+        \texttt{gcc\ -shared\ ptrace.c\ -o\ ptrace.so}. This can then be put
+        into the environment in \texttt{gef} using
+        \texttt{set\ environment\ LD\_PRELOAD=./ptrace.so}, which will cause any
+        \texttt{ptrace()} call to use this function instead.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={bypass}]{Vulnerabilities/Path 3/RE/images/bypass.png}
+        \end{center}
+
+        Now that we are into the program, we can actually investigate it. It
+        seems to be asking for a password, but we don't know what the password
+        is so we'll have to look elsewhere. The first place to investigate would
+        be any embedded strings in the program, which can be dumped using
+        \texttt{strings\ rand}.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={strings}]{Vulnerabilities/Path 3/RE/images/strings.png}
+        \end{center}
+
+        There are several notable strings that can be found in the program.
+        There's the debugger string seen earlier, the password entry text, a
+        random string of numbers (\texttt{4918347965232805349}), and a piece of
+        string that seems to imply that the flag is printed somewhere (but
+        likely obfuscated in some form). The string of numbers is interesting,
+        and could be the password so we can try it and see what happens.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={failed}]{Vulnerabilities/Path 3/RE/images/failed_password.png}
+        \end{center}
+
+        This has caused nothing to happen, so some more investigation is
+        necessary. As identified earlier, the binary isn't stripped so we could
+        take a look at what functions the binary includes.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={functions}]{Vulnerabilities/Path 3/RE/images/functions.png}
+        \end{center}
+
+        These are all C and system functions, with the exceptions of
+        \texttt{main} and \texttt{hash}. \texttt{main} isn't interesting since
+        all standlone C binaries will include one, but \texttt{hash} is
+        interesting and could indicate that the password is hashed and perhaps
+        that's what the random string of numbers was. We don't expect
+        \texttt{hash} to contain any useful information since it just sounds
+        like a hashing function, so exploring \texttt{main} again will be the
+        next step. Just to make it easier, this will be done using Ghidra.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={decompiled}]{Vulnerabilities/Path 3/RE/images/decompiled_main.png}
+        \end{center}
+
+        This decompilation of \texttt{main} produced by Ghidra has a few points
+        of interest: - The \texttt{ptrace} call definitely terminates if it
+        succeeds - The input is hashed and passed as a string - The hash is
+        compared to \texttt{4918347965232805349} To make viewing this
+        decompilation easier, the variables can be renamed.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={clean}]{Vulnerabilities/Path 3/RE/images/decompiled_main_clean.png}
+        \end{center}
+
+        After cleaning up the decompilation, it seems like the hash value is
+        used to seed a random number generator. However, to enter this branch
+        the first thing we need to do is find a password that hashes to the
+        value \texttt{4918347965232805349}. This could be brute forced, but this
+        will take a long time. Instead, we can use \texttt{gef} to insert this
+        value into memory just before the string comparison to enter the branch.
+        This requires looking at the assembly to find out where the password
+        input is stored in memory so we can adjust its value.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={scanf}]{Vulnerabilities/Path 3/RE/images/gef_scanf.png}
+        \end{center}
+
+        At various points, there are a few addresses that have data being
+        transferred into them: - \texttt{rbp\ -\ 0xf} - \texttt{rbp\ -\ 0x120} -
+        \texttt{rbp\ -\ 0x40} - \texttt{rbp\ -\ 0x118} The one that sticks out
+        the most is in the instructions before the \texttt{hash} function is
+        called. The \texttt{lea} instruction is used to move the memory held in
+        \texttt{rbp\ -\ 0x40} to the \texttt{rax} register. This is then moved
+        to the \texttt{rdi} register, which is where the first argument for
+        functions is stored. As the \texttt{hash} function is called directly
+        afterwards, this seems like the perfect candidate for where password
+        input is stored. To confirm this, a breakpoint can be placed just before
+        the \texttt{hash} function (using \texttt{b\ *0x1239}) and the
+        \texttt{rdi} register inspected.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={rdi}]{Vulnerabilities/Path 3/RE/images/rdi.png}
+        \end{center}
+
+        As expected, the \texttt{rdi} register (and \texttt{rax} register)
+        contains the input password. Therefore, the input password is contained
+        at \texttt{rbp\ -\ 0x40}. We can utilise this fact to force this memory
+        to be the hash value, bypassing the need to find the password entirely.
+        This can be done by setting a breakpoint at the \texttt{strcmp}
+        instruction, changing the value of \texttt{rbp\ -\ 0x40} (using
+        \texttt{set\ \{char{[}20{]}\}(\$rbp-0x40)}) to the ``correct'' hash
+        value, and then continuing function execution.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={rbp}]{Vulnerabilities/Path 3/RE/images/rbp-0x40.png}
+        \end{center}
+
+        As shown, this has actually allowed program execution to continue within
+        the branch. However, the output does not look as expected. This probably
+        has something to do with the random seed identified earlier, which was
+        identified earlier to use the hashed value. Since changing the value at
+        \texttt{rbp-0x40} only changed the string representation, we also need
+        to change the value of the hash value itself. In the earlier
+        disassembled code, \texttt{rbp-0x120} seems like a good candidate since
+        that is the value accessed directly after the \texttt{hash} function
+        returns so we can inspect that.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={rbp}]{Vulnerabilities/Path 3/RE/images/rbp-0x120.png}
+        \end{center}
+
+        As shown, the address at \texttt{rbp\ -\ 0x120} holds the exact same
+        value (in decimal) as \texttt{rdi} (which, in this case, is the string
+        representation of the hash of the password input). As such, it can be
+        changed using \texttt{set\ \{long\}(\$rbp\ -\ 0x120)} to ensure that
+        both \texttt{rbp\ -\ 0x120} and \texttt{rbp\ -\ 0x40} hold the same
+        value. If both of these are changed and the program execution continues,
+        the following results:\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={finish}]{Vulnerabilities/Path 3/RE/images/finish.png}
+        \end{center}
+
+        This has revealed the flag, which is now visible in plaintext. As such,
+        the program has successfully been reversed engineered.
+
+        For clarity, the following commands need to be run in order to achieve
+        this:
+        \begin{verbatim}
+        gef ./rand
+        set environment LD_PRELOAD=./ptrace.so
+        b main
+        r
+        disas main
+        b *0x555555555140
+        c
+        set {char[20]}($rbp-0x40) = "4918347965232805349"
+        set {long}($rbp-0x120) = 4918347965232805349
+        c
+        \end{verbatim}
 
     \subsection*{Vertical Privilege (Zarin)}
 \end{document}
