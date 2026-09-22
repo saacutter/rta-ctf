@@ -12,8 +12,8 @@ The binary asks for a password, and since we don't know what it is returns failu
 From this disassembly, there doesn't seem to be anything of note. There's only a `scanf` call and 2 `printf` calls (both of which have already been seen) but nothing immediately jumps out. There does seem to be a comparison at some point with the `je` instruction, but no obvious comparison values. As there is nothing else to go on, seeing what functions are in the program might be helpful - nothing is called by `main()`, but that doesn't mean that there isn't anything that could give a hint to the solution. \
 ![functions](images/functions.png)
 
-The program, as expected, has a lot of functions due to the previously identified static linking. However, after going through the whole list, there is one function that stood out - `do_work()`. This is not part of any library and not called by `main` so its purpose isn't clear, but it's worth investigating. For now, disassembling it seems like the natural next step. \
-![work](images/work.png)
+The program, as expected, has a lot of functions due to the previously identified static linking. However, after going through the whole list, there is one function that stood out - `get_flag()`. This is not part of any library and not called by `main` so its purpose isn't clear, but it's worth investigating. For now, disassembling it seems like the natural next step. \
+![work](images/flag.png)
 
 This function seems to be doing quite a bit more work than `main`. There are some `putchar` function calls, which seems like a natural place for the flag to be. Although this function is not called from `main`, it doesn't need to be. The `rip` register, which stores the address for the next instruction to execute, can be directly manipulated using `gef`. By setting `rip` to the start of this function, we can execute the function and see what it does. \
 ![rip](images/rip.png)
