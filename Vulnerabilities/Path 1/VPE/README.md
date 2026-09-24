@@ -52,4 +52,4 @@ This requires some additional environment variables to be created to get around 
 After waiting for the `cron` job to execute, this has created a `bash` binary in the user's home directory as specified. This can now be run using `./bash -p` to elevate our privileges to root. \
 ![root](images/root.png)
 
-As shown, we have successfully become root and this attack has been completed successfully. 
+As shown, we have successfully become root and this attack has been completed successfully.
