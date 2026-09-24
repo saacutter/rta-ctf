@@ -212,6 +212,14 @@ def _maintenance_page():
     </html>
     """
 
+
+@app.route("/login/team-alpha")
+def team_alpha():
+    return render_template(
+        "branch1_01.html"
+    )
+
+
 BRAVO_ACCOUNTS = {
     "castillo": {
         "name": "R. Castillo",
