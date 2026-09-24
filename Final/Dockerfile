@@ -22,6 +22,7 @@ RUN groupadd -g 10000 test && useradd -m -r -u 10000 -g test testuser
 RUN mkdir -p /home/testuser/.ssh && chown testuser:test /home/testuser/.ssh && chmod 700 /home/testuser/.ssh
 COPY --chown=testuser:test files/public_key.pub /home/testuser/.ssh/authorized_keys
 EXPOSE 22
+RUN echo "echo 'flag{3VeN_RSA_C4N_b_3xpl0lt3d!!}'" >> /home/testuser/.profile
 
 # Start flc
 WORKDIR /opt/flc
