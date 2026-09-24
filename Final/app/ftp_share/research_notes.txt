@@ -1,9 +1,7 @@
 AEROSPACE RESEARCH DIVISION
 CONFIDENTIAL INTERNAL NOTE
 
-Legacy telemetry archive credentials:
-Username: pilot
-Access Code: SKYWARD-2121
 
-FLAG{anonymous_ftp_exposure}
+
+FLAG{4n0nym0us_ftp_3xp0sur3}
 
