@@ -6,26 +6,24 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install sudo -y
 RUN apt install openssh-server -y
 RUN apt install cron -y
+RUN apt install zip -y
 
 # Create a non-privileged user
 RUN groupadd -g 10000 nonprivileged && useradd -m -r -u 10000 -g nonprivileged user
 RUN chmod 777 /home/user
 
-# Add a higher privileged user
-RUN groupadd -g 1001 privileged && useradd -m -r -u 1001 -g privileged puser
+# Copy the scripts for the cronjob
+RUN mkdir -p /usr/local/sbin && mkdir -p /var/log/ && mkdir -p /var/job_queue/
+COPY --chown=root:root archive_queue.sh /usr/local/sbin/archive_queue
+COPY --chown=root:root log_queue.sh /usr/local/sbin/log_queue
+RUN chmod 755 /usr/local/sbin/archive_queue /usr/local/sbin/log_queue
 
-# Copy the SSH public key to the unprivileged user's SSH directory
-RUN mkdir -p /home/user/.ssh && chown user:nonprivileged /home/user/.ssh && chmod 700 /home/user/.ssh
-COPY --chown=user:nonprivileged public_key.pub /home/user/.ssh/authorized_keys
+# Copy the cron script and start the cronjob
+COPY --chown=root:root crontab /etc/cron.d/archive_jobs
+RUN chmod 0644 /etc/cron.d/archive_jobs
 
-# Copy the update_system binary to the system
-COPY --chown=puser:privileged update_system /home/user/update_system
-RUN chmod 4711 /home/user/update_system
-
-# Expose the SSH port
-EXPOSE 22
-
-# Start the SSH server
-#CMD ["/usr/sbin/sshd", "-D"]
+# Copy the create_job binary to the system
+COPY --chown=root:root create_job /home/user/create_job
+RUN chmod 4711 /home/user/create_job
 
 CMD service cron start && su - user
