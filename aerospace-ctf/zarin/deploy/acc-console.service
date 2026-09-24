@@ -1,0 +1,17 @@
+# systemd unit for STEP 2 (operator console) inside the shared VM.
+# Install to /etc/systemd/system/acc-console.service
+[Unit]
+Description=AEROSPACE COMMAND Operator Console (route: step 2, horizontal PE / IDOR)
+After=network.target
+
+[Service]
+Type=simple
+User=acc
+WorkingDirectory=/opt/acc-route/step2-operator-console
+Environment=PORT=8090
+ExecStart=/usr/bin/python3 /opt/acc-route/step2-operator-console/app.py
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

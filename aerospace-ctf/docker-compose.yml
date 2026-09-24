@@ -1,0 +1,19 @@
+services:
+
+  web:
+    build: .
+    container_name: aerospace-web
+
+    command: python app.py
+
+    ports:
+      - "5005:5005"
+
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+
+    volumes:
+      - ./database.db:/app/database.db
+      - ./ftp_share:/app/ftp_share
+
+    restart: unless-stopped

@@ -1,0 +1,41 @@
+# Docker harness for BUILDING/TESTING my route in isolation.
+# The real deliverable runs as systemd services in the shared VM (see
+# deploy/vm-install.sh); this compose file is just how I test the live
+# services together on my own machine.
+#
+#   docker compose up --build
+#   # briefing+console: http://localhost:8090/   router: telnet localhost 23
+#   # firmware (RE binary) download: served on the router at :8081, secret path
+#   #   is disclosed in /opt/maint once you solve the injection
+#   # vertical-PE box: ssh fieldtech@localhost -p 2022  (creds are Isaac's handoff)
+#   # players get: step1-packet-capture/capture.pcap + step1's intercept-notes.txt
+services:
+  acc-console:              # step 2 -- operator console (IDOR)
+    build:
+      context: .
+      dockerfile: step2-operator-console/Dockerfile
+    environment:
+      NETWORK_FLAG: "CITS3006{l4A5p3MGYr}"      # shown on the dashboard after login
+      HORIZONTAL_FLAG: "CITS3006{2cXVYDsVXj}"   # inside the IDOR config record #48879
+    ports:
+      - "8090:8090"
+    restart: unless-stopped
+
+  acc-router:               # step 3 -- router telnet (injection) + OTA firmware
+    build:
+      context: step3-warhead-router
+      args:
+        FLAG: "CITS3006{24n4CBiT2K}"     # step-3 (router) flag
+    ports:
+      - "23:23"
+      - "8081:8081"         # OTA firmware endpoint (secret path only)
+    restart: unless-stopped
+
+  acc-armctl:               # step 4 -- vertical privesc (sudo misconfig + GTFOBins)
+    build:
+      context: step4-vertical-privesc
+      args:
+        FLAG: "CITS3006{xyOTpUwAhd}"     # the column's root / disarm flag
+    ports:
+      - "2022:22"          # ssh fieldtech@localhost -p 2022  (creds come from Isaac's RE#2)
+    restart: unless-stopped

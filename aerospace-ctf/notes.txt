@@ -1,0 +1,185 @@
+AEROSPACE CTF PROJECT — WEB APP NOTES
+========================================
+
+Project folder
+--------------
+/home/kali/Desktop/aerospace-ctf
+
+Virtual machine
+---------------
+Target VM: Kali Linux
+Network: NAT
+
+IMPORTANT — SHARING THE VM
+--------------------------
+This VM will be shared with the team so they can continue developing
+additional CTF challenges on the same machine.
+
+The IP address may change when the VM is imported and started on
+another team member's computer.
+
+After starting the VM, run:
+
+   ip addr
+
+Find the IP address assigned to eth0.
+
+Then access the Flask website using:
+
+   http://<CURRENT-VM-IP>:5000
+
+Use the IP address assigned to your own VM.
+
+
+How to start the web application
+--------------------------------
+1. Open a terminal and go to the project folder:
+
+   cd ~/Desktop/aerospace-ctf
+
+2. Activate the Python virtual environment:
+
+   source venv/bin/activate
+
+3. Start the Flask web application:
+
+   python app.py
+
+4. The website runs on:
+
+   http://192. ***************
+
+5. To stop the web application:
+
+   Ctrl+C
+
+
+Database
+--------
+Database file:
+database.db
+
+Database initialization file:
+database.py
+
+Current users
+-------------
+Pilot:
+Username: pilot
+Password: flight2026
+Role: Pilot
+Clearance: LOW
+
+Engineer:
+Username: engineer
+Password: engineer2026
+Role: Engineer
+Clearance: MEDIUM
+
+
+
+CTF CHALLENGE COMPLETED
+-----------------------
+Challenge type:
+Web vulnerability — SQL Injection (SQLi)
+
+Purpose:
+The login form is intentionally vulnerable to SQL injection.
+
+Vulnerable input:
+Operator ID / username field
+
+Working SQL injection payload:
+
+   ' OR 1=1 -- 
+
+Password:
+Any value can be entered because the SQL comment causes the
+password-checking part of the query to be ignored.
+
+Example:
+
+Operator ID:
+   ' OR 1=1 -- 
+
+Password:
+   anything
+
+Expected result:
+ACCESS GRANTED
+
+The application uses fetchone(), so the first matching database
+record is returned. At present, this is the pilot account.
+
+
+How the SQL injection works
+---------------------------
+The application builds an SQL query by directly inserting the
+username and password into the query.
+
+A normal query looks like:
+
+SELECT username, role, clearance
+FROM users
+WHERE username = 'pilot' AND password = 'flight2026'
+
+The SQL injection changes it to approximately:
+
+SELECT username, role, clearance
+FROM users
+WHERE username = '' OR 1=1 -- '
+AND password = 'anything'
+
+Because 1=1 is always true and the -- comment disables the rest
+of the query, the password condition is not checked.
+
+
+Why this is a vulnerability
+---------------------------
+The application directly places user-controlled input into an SQL
+statement instead of using parameterized queries.
+
+This allows an attacker to modify the intended SQL query and
+bypass authentication without knowing a valid password.
+
+
+Important project note
+----------------------
+This SQL injection is intentionally included for the CITS3006
+CTF/lab project.
+
+The aerospace website is the entry point for the challenge.
+
+Planned challenge chain:
+Aerospace website
+    ->
+SQL Injection
+    ->
+Low-clearance pilot account
+    ->
+Next teammate's challenge
+
+
+Useful commands
+---------------
+Check database contents:
+
+python -c "import sqlite3; c=sqlite3.connect('database.db'); print(c.execute('SELECT * FROM users').fetchall()); c.close()"
+
+Run the database setup script:
+
+python database.py
+
+Start the application:
+
+python app.py
+
+
+Files
+-----
+app.py           Flask web application
+database.py      SQLite database setup
+database.db      SQLite database
+templates/       HTML templates
+static/images/   Website images
+venv/            Python virtual environment

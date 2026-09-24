@@ -1,0 +1,17 @@
+# Python virtual environments (machine-specific, don't commit)
+venv/
+.venv/
+env/
+
+# Python caches / compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS / archive junk
+.DS_Store
+__MACOSX/
+
+# Editor / OS cruft
+Thumbs.db
+*.swp

@@ -1,0 +1,18 @@
+# Combined compose for the whole CITS3006 CTF: shared entry app + Team Charlie
+# (Zarin's network route), started with ONE command.
+#
+# Put this file at the OUTER aerospace-ctf/ folder, then from there run:
+#     docker compose up --build
+#
+# It brings up:
+#   shared portal + dashboard : http://localhost:5005/   (SQLi entry)
+#   Charlie / operator portal : http://localhost:8090/   (the Charlie tile lands here)
+#   Charlie router telnet     : telnet localhost 23
+#   Charlie firmware endpoint : http://localhost:8081/
+#   Charlie vertical-PE box   : ssh fieldtech@localhost -p 2022
+#
+# 'include' pulls in each team's own compose file and resolves its build paths
+# relative to that file, so nothing else has to move.
+include:
+  - aerospace-ctf/docker-compose.yml               # shared SQLi/dashboard app
+  - aerospace-ctf/zarin-route/docker-compose.yml   # Team Charlie (network route)

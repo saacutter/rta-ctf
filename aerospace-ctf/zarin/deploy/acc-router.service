@@ -1,0 +1,28 @@
+# systemd unit for STEP 3 (router telnet console) inside the shared VM.
+# Install to /etc/systemd/system/acc-router.service
+#
+# Binds tcp/23, so it runs as root. The flag is placed at /flag by ExecStartPre.
+# Rotate the flag by editing FLAG below (and nothing else changes).
+#
+# NOTE: this VM/systemd path serves the TELNET stage only. The OTA-firmware
+# endpoint that hands out Isaac's RE binary (and the /opt/maint artefacts) is
+# wired into the DOCKER image's entrypoint -- use the Docker deployment for the
+# full integrated chain. Flag value below kept in sync with the Docker build.
+[Unit]
+Description=AEROSPACE COMMAND-RTR-01 Telnet console (route: step 3, command injection)
+After=network.target
+
+[Service]
+Type=simple
+Environment=FLAG=CITS3006{24n4CBiT2K}
+Environment=TELNET_USER=support
+Environment=TELNET_PASS_ENC=Gz89ayl5KC4oe2ho
+Environment=TELNET_PORT=23
+Environment=FLAG_PATH=/flag
+ExecStartPre=/bin/sh -c 'echo "$FLAG" > /flag && chmod 644 /flag'
+ExecStart=/usr/bin/python3 /opt/acc-route/step3-warhead-router/telnet_server.py
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
