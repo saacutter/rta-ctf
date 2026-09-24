@@ -6,6 +6,7 @@ services:
 
     ports:
       - "5005:5005"
+      - "22:22"
 
     environment:
       - SECRET_KEY=${SECRET_KEY}
