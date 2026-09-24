@@ -4,7 +4,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install any necessary packages
 RUN apt update && apt install sudo -y
-RUN apt install openssh-server -y
 RUN apt install cron -y
 RUN apt install zip -y
 

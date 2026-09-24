@@ -3,12 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
-
-extern char **environ;
 
 bool validate_string(char *string) {
     // Filter the user's input
@@ -72,7 +68,7 @@ int main(void) {
     int status;
     waitpid(pid, &status, 0);
     if (WIFEXITED(status)) {
-        printf("Wrote contents to %s\n", path);
+        printf("Wrote contents to %s. This will be processed by the system automatically.\n", path);
     } else {
         printf("Failed to write contents to %s\n", path);
     }
