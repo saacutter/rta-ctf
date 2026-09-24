@@ -1,5 +1,17 @@
 services:
-  flc:
+
+  web:
     build: .
+    container_name: aerospace-web
+
     ports:
-      - "5000:5000"
+      - "5005:5005"
+
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+
+    volumes:
+      - ./app/database.db:/app/database.db
+      - ./app/ftp_share:/app/ftp_share
+
+    restart: unless-stopped

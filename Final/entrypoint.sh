@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+
 service cron start
-/usr/sbin/sshd -D
-exec su -s /bin/bash www-data -c "python3 /srv/flc/app/app.py"
+/usr/sbin/sshd
+cd /app && python3 app.py
