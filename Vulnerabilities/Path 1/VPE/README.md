@@ -1,7 +1,7 @@
 Now that we have gotten to the new user account, we can see what this account has access to. The obvious place to start is to see what files exist in their home directories. \
 ![ls](images/ls.png)
 
-The most interesting thing is a `create_job` binary owned by root with the setuid bit active which the user can execute. This needs to be further explored, so we can see what the binary does for any leads.
+The most interesting thing is a `create_job` binary owned by root with the setuid bit active which the user can execute. This needs to be further explored, so we can see what the binary does for any leads. \
 ![test](images/test.png)
 
 There are two useful things that can be identified from the output of the program. First, it looks like it takes a name for a job and a description and writes the contents to `/var/job_queue/<job_name>`. It looks like it also is somehow processed by the system automatically. As there is nothing else to work with, exploring the directory first seems like the natural next step. \
@@ -34,7 +34,7 @@ This leads to an error that the job name has forbidden characters. To see what t
 The name for the job (and its contents) are checked with the `validate_string()` function. This can be checked to see what characters we aren't allowed to use. \
 ![invalid](images/invalid_chars.png)
 
-From this decompilation, it looks like we can't use `.`, `/`, `\\`, `~`, `;`, `|`, `&`, `(`, `)`, `'`, `"`, `*`, `?`, `[`, or `]`. This means that we need some other way to inject them. After going through the decompiled code again, we can see how the file is written. \
+From this decompilation, it looks like we can't use `.`, `/`, `\`, `~`, `;`, `|`, `&`, `(`, `)`, `'`, `"`, `*`, `?`, `[`, or `]`. This means that we need some other way to inject them. After going through the decompiled code again, we can see how the file is written. \
 ![execl](images/execl.png)
 
 The jobs are written using `execl` using `echo` on `bash`. The `execl` function uses the caller's environment, so we might be able to use environment variables to write files wherever we want. As we know it uses a `bash` shell call, we know it can expand variables so this is something worth trying. The program only checks the unexpanded form, so this should give some sort of result. This can be tested using the same example as before, but inserting the forbidden characters as environment variables. \

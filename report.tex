@@ -1,4 +1,5 @@
 % Compile with pdflatex report.tex -o report.pdf --mathjax
+% Compile each section with pandoc "Vulnerabilities/Path <num>/<vuln>/README.md" -o README.tex
 
 \documentclass{article}
 \usepackage[a4paper, margin=1in]{geometry}
@@ -216,6 +217,182 @@
     \subsection*{AI (Zarin)}
 
     \subsection*{\texttt{PATH} Hijacking (Isaac)}
+        Now that we have gotten to the new user account, we can see what this
+        account has access to. The obvious place to start is to see what files
+        exist in their home directories.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={ls}]{Vulnerabilities/Path 1/VPE/images/ls.png}
+        \end{center}
+
+        The most interesting thing is a \texttt{create\_job} binary owned by
+        root with the setuid bit active which the user can execute. This needs
+        to be further explored, so we can see what the binary does for any
+        leads.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={test}]{Vulnerabilities/Path 1/VPE/images/test.png}
+        \end{center}
+
+        There are two useful things that can be identified from the output of
+        the program. First, it looks like it takes a name for a job and a
+        description and writes the contents to
+        \texttt{/var/job\_queue/\textless{}job\_name\textgreater{}}. It looks
+        like it also is somehow processed by the system automatically. As there
+        is nothing else to work with, exploring the directory first seems like
+        the natural next step.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={job\_queue}]{Vulnerabilities/Path 1/VPE/images/job_queue.png}
+        \end{center}
+
+        It looks like the jobs sent to this queue become owned by root with the
+        full \texttt{rwx} permissions. As these are seemingly just text files,
+        this is probably a misconfiguration but we can try to exploit this.
+        However, this seems like a dead end. As we know that the system
+        processes jobs automatically, there must be some background process that
+        is run to process these jobs somehow. We can try to identify what this
+        process is using \texttt{ps\ aux}, which will list all processes
+        currently running on the system.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={processes}]{Vulnerabilities/Path 1/VPE/images/processes.png}
+        \end{center}
+
+        It looks like the system is running a \texttt{cron} job, which is likely
+        how these jobs are automatically processed. As \texttt{cron} jobs can be
+        stored in different directories in \texttt{/etc}, it is worth
+        identifying which directories exist on the system for further
+        exploration.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={cron\_dirs}]{Vulnerabilities/Path 1/VPE/images/cron_dirs.png}
+        \end{center}
+
+        There are a total of 7 different directories that can be searched.
+        Naturally, going in order (so starting with \texttt{cron.d}) makes the
+        most sense.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={cron\_ls}]{Vulnerabilities/Path 1/VPE/images/ls_cron.png}
+        \end{center}
+
+        The only directories that have contents are \texttt{cron.d} and
+        \texttt{cron.daily}. However, \texttt{cron.daily} includes standard
+        Ubuntu jobs leaving only \texttt{cron.d}. This includes an
+        \texttt{archive\_jobs} file, which sounds like exactly what we need.
+        Therefore, this is our next target.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={cron\_jobs}]{Vulnerabilities/Path 1/VPE/images/cron_jobs.png}
+        \end{center}
+
+        This file lists two jobs - a \texttt{log\_queue} job which runs once
+        every minute and an \texttt{archive\_queue} job which runs every day at
+        midnight (0:00). These jobs both run as root, which could be the way
+        that we achieve a root shell. Before it can be decided how to approach
+        this, both scripts need to be checked for potential vulnerabilities.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={scripts}]{Vulnerabilities/Path 1/VPE/images/scripts.png}
+        \end{center}
+
+        It appears that both scripts are Bash scripts which are executed by
+        \texttt{cron} at designated times to perform specific actions (which
+        aren't relevant to what we are doing here). However, there is something
+        interesting about these files; they call standard Linux utilities using
+        unqualified path names. As we know that the \texttt{create\_job} utility
+        has root privileges, we can attempt to create a job that has custom
+        instructions to create a root shell. To do this, we need to check where
+        each of the utilities are located to choose a suitable location on the
+        \texttt{cron} job's \texttt{PATH} so that our custom utility is the one
+        that gets executed. As the first job executes every minute, the binaries
+        in this file are our candidates. This script only uses \texttt{ls}, so
+        this will be our target binary.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={which\_ls}]{Vulnerabilities/Path 1/VPE/images/which_ls.png}
+        \end{center}
+
+        It appears that the current \texttt{ls} binary is located at
+        \texttt{/usr/bin/ls}. This is at the very end of the \texttt{cron} job's
+        \texttt{PATH}, so we can attempt to place it in any other directory on
+        the \texttt{PATH}. Arbitrarily, we will use \texttt{/usr/local/sbin} as
+        the target destination since this will be found first. As we know the
+        files get written to \texttt{/var/job\_queue}, we need to try making it
+        write to \texttt{/usr/local/sbin}. As the program has root, it can write
+        anywhere with no restrictions. Therefore, we can try and see if
+        \texttt{../../usr/local/sbin/ls} will work.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={dir\_traversal}]{Vulnerabilities/Path 1/VPE/images/dir_traversal_test.png}
+        \end{center}
+
+        This leads to an error that the job name has forbidden characters. To
+        see what these forbidden characters are, we need to test it somehow.
+        This would take forever trying to work it out manually, so reverse
+        engineering the binary makes the most sense since the forbidden
+        characters are likely stored inside the binary. To do this, Ghidra will
+        be used so we can see the decompiled C code as well which might make
+        this easier. This requires the binary to be copied using \texttt{scp} on
+        the machine so it can be saved to our host. Once this is done and the
+        decompiled binary is inspected, we can identify a few notable
+        properties.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={validate\_string}]{Vulnerabilities/Path 1/VPE/images/validate_string.png}
+        \end{center}
+
+        The name for the job (and its contents) are checked with the
+        \texttt{validate\_string()} function. This can be checked to see what
+        characters we aren't allowed to use.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={invalid}]{Vulnerabilities/Path 1/VPE/images/invalid_chars.png}
+        \end{center}
+
+        From this decompilation, it looks like we can't use \texttt{.},
+        \texttt{/}, \texttt{\textbackslash{}},
+        \texttt{\textasciitilde{}}, \texttt{;}, \texttt{\textbar{}},
+        \texttt{\&}, \texttt{(}, \texttt{)}, \texttt{\textquotesingle{}},
+        \texttt{"}, \texttt{*}, \texttt{?}, \texttt{{[}}, or \texttt{{]}}. This
+        means that we need some other way to inject them. After going through
+        the decompiled code again, we can see how the file is written.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={execl}]{Vulnerabilities/Path 1/VPE/images/execl.png}
+        \end{center}
+
+        The jobs are written using \texttt{execl} using \texttt{echo} on
+        \texttt{bash}. The \texttt{execl} function uses the caller's
+        environment, so we might be able to use environment variables to write
+        files wherever we want. As we know it uses a \texttt{bash} shell call,
+        we know it can expand variables so this is something worth trying. The
+        program only checks the unexpanded form, so this should give some sort
+        of result. This can be tested using the same example as before, but
+        inserting the forbidden characters as environment variables.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={env\_traversal}]{Vulnerabilities/Path 1/VPE/images/env_traversal_test.png}
+        \end{center}
+
+        As shown, this has successfully created a file in the
+        \texttt{/usr/local/sbin} directory which is normally only writable by
+        root. Now that we have a way to write arbitrary information wherever we
+        want, we need to construct a payload that will allow us to activate a
+        root shell. The only thing we need to do is create a copy of
+        \texttt{/bin/bash} that the current user can access and give it the
+        setuid bit so that it executes as root. This is a pretty simple Bash
+        script, which can be written as the following:
+
+        \begin{verbatim}
+        #!/bin/bash
+        cp /bin/bash /home/user/bash
+        chmod +s /home/user/bash
+        \end{verbatim}
+
+        This requires some additional environment variables to be created to get
+        around the program's filter, but this is pretty simple to do.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={payload}]{Vulnerabilities/Path 1/VPE/images/payload.png}
+        \end{center}
+
+        After waiting for the \texttt{cron} job to execute, this has created a
+        \texttt{bash} binary in the user's home directory as specified. This can
+        now be run using \texttt{./bash\ -p} to elevate our privileges to
+        root.\\
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={root}]{Vulnerabilities/Path 1/VPE/images/root.png}
+        \end{center}
+
+        As shown, we have successfully become root and this attack has been
+        completed successfully.
 
     \newpage
 
