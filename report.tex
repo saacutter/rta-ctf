@@ -57,6 +57,88 @@
     \newpage
 
     \section*{SQL Injection (Mohammad + Dhul)}
+        Once the application is started, the entry point is located at both
+        \texttt{http://localhost:5005} or
+        \texttt{http://\textless{}container\_IP\textgreater{}:5005}. This will
+        bring us to the following web page.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={entry}]{Vulnerabilities/SQLi/images/entry.png}
+        \end{center}
+
+        The only option available to us is the ``Sign In'' option in the top
+        right. This reveals 2 options - ``Guest Access'' and ``Operator
+        Access''. Obviously we want as much privilege as possible, so we will
+        try ``Operator Access'' first.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={denial}]{Vulnerabilities/SQLi/images/denial.png}
+        \end{center}
+
+        This leads to an error that it cannot be accessed. We should keep this
+        in mind for later, but the only option left now is to try ``Guest
+        Access''.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={guest}]{Vulnerabilities/SQLi/images/guest.png}
+        \end{center}
+
+        This has led us to a fairly standard login panel. However, we don't know
+        any credentials so this must be able to be exploited some other way. The
+        URL leads to the path \texttt{/login/guest}, so we can try and access
+        the operator panel by navigating to \texttt{/login/operator} and seeing
+        if that works.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={operator}]{Vulnerabilities/SQLi/images/operator.png}
+        \end{center}
+
+        This has led to the operator login panel, which means we are on the
+        right track. There are a few things to note here; we need an operator
+        ID/access code (likely just a username and password) and this is stage 1
+        of 2 apparently. We don't know any credentials yet so we should try to
+        enter anything and see what happens.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={stage\_1}]{Vulnerabilities/SQLi/images/stage_1.png}
+        \end{center}
+
+        Visually this didn't change anything, but the URL changed with a new
+        \texttt{query} parameter that appears to be an SQL query
+        (\texttt{SELECT\%20username\%2C\%20role\%2C\%20clearance\%20FROM\%20users\%20WHERE\%20username\%20\%3D\%20\%27test\%27\%20AND\%20password\%20\%3D\%20\%27test\%27}
+        or
+        \texttt{SELECT\ username\%2C\ role\%2C\ clearance\ FROM\ users\ WHERE\ username\ \%3D\ \textquotesingle{}test\textquotesingle{}\ AND\ password\ \%3D\ \textquotesingle{}test\textquotesingle{}}
+        depending on the browser being used). This is URL encoded, but by
+        decoding it we can see the query being executed is
+        \texttt{SELECT\ username,\ role,\ clearance\ FROM\ users\ WHERE\ username\ =\ \textquotesingle{}test\textquotesingle{}\ AND\ password\ =\ \textquotesingle{}test\textquotesingle{}}.
+        Since we can directly manipulate the query, this seems like the obvious
+        solution. As we don't know the password, we can just remove this section
+        entirely so that we only have to match the username. We don't know the
+        username, but we can probably assume that one of them is \texttt{admin}
+        or \texttt{administrator}. We can try this using the URL
+        \texttt{http://localhost:5005/login/operator?query=ELECT\%20username\%2C\%20role\%2C\%20clearance\%20FROM\%20users\%20WHERE\%20username\%20\%3D\%20\%27admin\%27}.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={stage\_2}]{Vulnerabilities/SQLi/images/stage_2.png}
+        \end{center}
+
+        This had led to stage 2 of the login panel, indicating that
+        \texttt{admin} was, indeed, a valid username. At this point we have no
+        further information so we need to test this panel to see if anything
+        happens.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={test\_2}]{Vulnerabilities/SQLi/images/test_2.png}
+        \end{center}
+
+        After entering some test credentials, there are no visual changes to the
+        UI or URL so there must be another solution. Even after looking at the
+        website's cookies and source code for any potential information, nothing
+        can be found. As we have nothing else to work on, we can try to
+        construct a basic SQL injection attack. This can be done using
+        \texttt{\textquotesingle{}\ OR\ 1=1\ -\/-} as the username to see if
+        anything happens.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={dashboard}]{Vulnerabilities/SQLi/images/dashboard.png}
+        \end{center}
+
+        This has allowed us to login, showing the dashboard for the web
+        application. The dashboard has three different ``categories''; Team
+        Alpha, Team Bravo, and Team Charlie. Each of these correspond to one of
+        the three exploit paths, so we will visit these in order.
 
     \newpage
 
@@ -67,7 +149,7 @@
 
         To begin, the binary can be inspected using \texttt{file\ re} to gain
         some information about its structure and how it was compiled since this
-        could give us an indication of how it is vulnerable.\\
+        could give us an indication of how it is vulnerable.
         \begin{center}
             \includegraphics[keepaspectratio,alt={file}]{Vulnerabilities/Path 1/RE/images/file.png}
         \end{center}
@@ -75,7 +157,7 @@
         The binary seems to be pretty standard. The only notable aspects are
         that it is statically linked and not stripped, which could be exploited.
         However, we need more information. To see what the binary actually does,
-        we can run it and see what happens.\\
+        we can run it and see what happens.
         \begin{center}
             \includegraphics[keepaspectratio,alt={run}]{Vulnerabilities/Path 1/RE/images/run.png}
         \end{center}
@@ -90,7 +172,7 @@
         such, we need to take another approach. Using a debugger like
         \texttt{gef} seems like the obvious next step, so we can try that. The
         obvious thing to do would be to see what the \texttt{main} function
-        does, so that can be disassembled.\\
+        does, so that can be disassembled.
         \begin{center}
             \includegraphics[keepaspectratio,alt={main}]{Vulnerabilities/Path 1/RE/images/main.png}
         \end{center}
@@ -102,7 +184,7 @@
         instruction, but no obvious comparison values. As there is nothing else
         to go on, seeing what functions are in the program might be helpful -
         nothing is called by \texttt{main()}, but that doesn't mean that there
-        isn't anything that could give a hint to the solution.\\
+        isn't anything that could give a hint to the solution.
         \begin{center}
             \includegraphics[keepaspectratio,alt={functions}]{Vulnerabilities/Path 1/RE/images/functions.png}
         \end{center}
@@ -112,7 +194,7 @@
         there is one function that stood out - \texttt{get\_flag()}. This is not
         part of any library and not called by \texttt{main} so its purpose isn't
         clear, but it's worth investigating. For now, disassembling it seems
-        like the natural next step.\\
+        like the natural next step.
         \begin{center}
             \includegraphics[keepaspectratio,alt={work}]{Vulnerabilities/Path 1/RE/images/flag.png}
         \end{center}
@@ -124,7 +206,7 @@
         register, which stores the address for the next instruction to execute,
         can be directly manipulated using \texttt{gef}. By setting \texttt{rip}
         to the start of this function, we can execute the function and see what
-        it does.\\
+        it does.
         \begin{center}
             \includegraphics[keepaspectratio,alt={rip}]{Vulnerabilities/Path 1/RE/images/rip.png}
         \end{center}
@@ -219,7 +301,7 @@
     \subsection*{\texttt{PATH} Hijacking (Isaac)}
         Now that we have gotten to the new user account, we can see what this
         account has access to. The obvious place to start is to see what files
-        exist in their home directories.\\
+        exist in their home directories.
         \begin{center}
             \includegraphics[keepaspectratio,alt={ls}]{Vulnerabilities/Path 1/VPE/images/ls.png}
         \end{center}
@@ -227,7 +309,7 @@
         The most interesting thing is a \texttt{create\_job} binary owned by
         root with the setuid bit active which the user can execute. This needs
         to be further explored, so we can see what the binary does for any
-        leads.\\
+        leads.
         \begin{center}
             \includegraphics[keepaspectratio,alt={test}]{Vulnerabilities/Path 1/VPE/images/test.png}
         \end{center}
@@ -238,7 +320,7 @@
         \texttt{/var/job\_queue/\textless{}job\_name\textgreater{}}. It looks
         like it also is somehow processed by the system automatically. As there
         is nothing else to work with, exploring the directory first seems like
-        the natural next step.\\
+        the natural next step.
         \begin{center}
             \includegraphics[keepaspectratio,alt={job\_queue}]{Vulnerabilities/Path 1/VPE/images/job_queue.png}
         \end{center}
@@ -250,7 +332,7 @@
         processes jobs automatically, there must be some background process that
         is run to process these jobs somehow. We can try to identify what this
         process is using \texttt{ps\ aux}, which will list all processes
-        currently running on the system.\\
+        currently running on the system.
         \begin{center}
             \includegraphics[keepaspectratio,alt={processes}]{Vulnerabilities/Path 1/VPE/images/processes.png}
         \end{center}
@@ -259,14 +341,14 @@
         how these jobs are automatically processed. As \texttt{cron} jobs can be
         stored in different directories in \texttt{/etc}, it is worth
         identifying which directories exist on the system for further
-        exploration.\\
+        exploration.
         \begin{center}
             \includegraphics[keepaspectratio,alt={cron\_dirs}]{Vulnerabilities/Path 1/VPE/images/cron_dirs.png}
         \end{center}
 
         There are a total of 7 different directories that can be searched.
         Naturally, going in order (so starting with \texttt{cron.d}) makes the
-        most sense.\\
+        most sense.
         \begin{center}
             \includegraphics[keepaspectratio,alt={cron\_ls}]{Vulnerabilities/Path 1/VPE/images/ls_cron.png}
         \end{center}
@@ -275,7 +357,7 @@
         \texttt{cron.daily}. However, \texttt{cron.daily} includes standard
         Ubuntu jobs leaving only \texttt{cron.d}. This includes an
         \texttt{archive\_jobs} file, which sounds like exactly what we need.
-        Therefore, this is our next target.\\
+        Therefore, this is our next target.
         \begin{center}
             \includegraphics[keepaspectratio,alt={cron\_jobs}]{Vulnerabilities/Path 1/VPE/images/cron_jobs.png}
         \end{center}
@@ -284,7 +366,7 @@
         every minute and an \texttt{archive\_queue} job which runs every day at
         midnight (0:00). These jobs both run as root, which could be the way
         that we achieve a root shell. Before it can be decided how to approach
-        this, both scripts need to be checked for potential vulnerabilities.\\
+        this, both scripts need to be checked for potential vulnerabilities.
         \begin{center}
             \includegraphics[keepaspectratio,alt={scripts}]{Vulnerabilities/Path 1/VPE/images/scripts.png}
         \end{center}
@@ -300,7 +382,7 @@
         \texttt{cron} job's \texttt{PATH} so that our custom utility is the one
         that gets executed. As the first job executes every minute, the binaries
         in this file are our candidates. This script only uses \texttt{ls}, so
-        this will be our target binary.\\
+        this will be our target binary.
         \begin{center}
             \includegraphics[keepaspectratio,alt={which\_ls}]{Vulnerabilities/Path 1/VPE/images/which_ls.png}
         \end{center}
@@ -313,7 +395,7 @@
         files get written to \texttt{/var/job\_queue}, we need to try making it
         write to \texttt{/usr/local/sbin}. As the program has root, it can write
         anywhere with no restrictions. Therefore, we can try and see if
-        \texttt{../../usr/local/sbin/ls} will work.\\
+        \texttt{../../usr/local/sbin/ls} will work.
         \begin{center}
             \includegraphics[keepaspectratio,alt={dir\_traversal}]{Vulnerabilities/Path 1/VPE/images/dir_traversal_test.png}
         \end{center}
@@ -327,14 +409,14 @@
         this easier. This requires the binary to be copied using \texttt{scp} on
         the machine so it can be saved to our host. Once this is done and the
         decompiled binary is inspected, we can identify a few notable
-        properties.\\
+        properties.
         \begin{center}
             \includegraphics[keepaspectratio,alt={validate\_string}]{Vulnerabilities/Path 1/VPE/images/validate_string.png}
         \end{center}
 
         The name for the job (and its contents) are checked with the
         \texttt{validate\_string()} function. This can be checked to see what
-        characters we aren't allowed to use.\\
+        characters we aren't allowed to use.
         \begin{center}
             \includegraphics[keepaspectratio,alt={invalid}]{Vulnerabilities/Path 1/VPE/images/invalid_chars.png}
         \end{center}
@@ -345,7 +427,7 @@
         \texttt{\&}, \texttt{(}, \texttt{)}, \texttt{\textquotesingle{}},
         \texttt{"}, \texttt{*}, \texttt{?}, \texttt{{[}}, or \texttt{{]}}. This
         means that we need some other way to inject them. After going through
-        the decompiled code again, we can see how the file is written.\\
+        the decompiled code again, we can see how the file is written.
         \begin{center}
             \includegraphics[keepaspectratio,alt={execl}]{Vulnerabilities/Path 1/VPE/images/execl.png}
         \end{center}
@@ -357,7 +439,7 @@
         we know it can expand variables so this is something worth trying. The
         program only checks the unexpanded form, so this should give some sort
         of result. This can be tested using the same example as before, but
-        inserting the forbidden characters as environment variables.\\
+        inserting the forbidden characters as environment variables.
         \begin{center}
             \includegraphics[keepaspectratio,alt={env\_traversal}]{Vulnerabilities/Path 1/VPE/images/env_traversal_test.png}
         \end{center}
@@ -378,7 +460,7 @@
         \end{verbatim}
 
         This requires some additional environment variables to be created to get
-        around the program's filter, but this is pretty simple to do.\\
+        around the program's filter, but this is pretty simple to do.
         \begin{center}
             \includegraphics[keepaspectratio,alt={payload}]{Vulnerabilities/Path 1/VPE/images/payload.png}
         \end{center}
@@ -386,7 +468,7 @@
         After waiting for the \texttt{cron} job to execute, this has created a
         \texttt{bash} binary in the user's home directory as specified. This can
         now be run using \texttt{./bash\ -p} to elevate our privileges to
-        root.\\
+        root.
         \begin{center}
             \includegraphics[keepaspectratio,alt={root}]{Vulnerabilities/Path 1/VPE/images/root.png}
         \end{center}
@@ -409,43 +491,342 @@
 
     \section*{Path Charlie}
     \subsection*{Packet Analysis (Zarin)}
+        The dashboard says that the operations portal needs some credentials
+        that we don't currently have. Fortunately, the Recon team intercepted an
+        operator's session and saved it. From here, we can inspect the
+        intercepted session to try and get the credentials to log into the
+        portal. The dashboard provides two files;
+        \texttt{intercepted-traffic.pcap}, the intercepted session, and
+        \texttt{intercept-notes.txt}, notes from the Recon team about the
+        session. As these are both embedded downloads, we can download both of
+        these to our host for further inspection. The notes are likely to hold
+        information regarding what we should be looking for, so we should read
+        this first.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={notes}]{Vulnerabilities/Path 3/Packet Capture/images/notes.png}
+        \end{center}
+
+        From these notes, we can gather a few bits of key information about
+        where to look for the credentials: - It is being transmitted over HTTP -
+        The auth token is stored in the \texttt{X-Aero-Session} header in every
+        request - The value of the auth token is encoded in some format - The
+        token is in the telemetry polls - There are two different requests to
+        the telemetry polls where one went through and the other did not Using
+        this information, we can now inspect the packet using Wireshark.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={wireshark}]{Vulnerabilities/Path 3/Packet Capture/images/wireshark.png}
+        \end{center}
+
+        There is a lot of information here, so we can narrow it down according
+        to the notes. As we know the credential is stored in a HTTP packet with
+        the \texttt{X-Aero-Session} header, we can filter to only these packets
+        with \texttt{http\ contains\ "X-Aero-Session"}.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={filter}]{Vulnerabilities/Path 3/Packet Capture/images/filter.png}
+        \end{center}
+
+        This has narrowed us down to two packets, which is just as the notes
+        indicated. These both access \texttt{/telemetry/status}, so both need to
+        be inspected to find the credential.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={inspection}]{Vulnerabilities/Path 3/Packet Capture/images/inspection.png}
+        \end{center}
+
+        It looks like the first request (\texttt{tcp.stream\ eq\ 4}) went
+        through and the second request (\texttt{tcp.stream\ eq\ 2}) failed.
+        Consequently, we can assume that the first request auth token
+        (\texttt{eyJ1Ijoiay5yZXllcyIsInAiOiJSM3llcyFvcHMyMDI3In0=}) is the one
+        we are looking for.
+
+        Although we know that it is encoded, we don't know how it is encoded.
+        However, there is an \texttt{=} sign at the end of the token. This is
+        common with Base64 encoding, so we can try and decode it and see if we
+        get anything. This can be done on our host using
+        \texttt{echo\ eyJ1Ijoiay5yZXllcyIsInAiOiJSM3llcyFvcHMyMDI3In0\ \textbar{}\ base64\ -d}
+        and looking at the output.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={decode}]{Vulnerabilities/Path 3/Packet Capture/images/decode.png}
+        \end{center}
+
+        After decoding, it looks like the username is \texttt{k.reyes} and the
+        password is \texttt{R3yes!ops2027}. Now that we have the username and
+        password, we can try and sign into the operations portal using these
+        credentials to see if they work.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={login}]{Vulnerabilities/Path 3/Packet Capture/images/login.png}
+        \end{center}
+
+        After authenticating, these credentials were accepted and we are brought
+        to an operations record panel.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={panel}]{Vulnerabilities/Path 3/Packet Capture/images/panel.png}
+        \end{center}
+
+        This has revealed the flag for the challenge, which is
+        \texttt{CITS3006\{l4A5p3MGYr\}}.
 
     \subsection*{Insecure Direct Object Reference (IDOR) (Zarin)}
+        The panel shows the document records for the current user, with the only
+        two available being \texttt{34303231} and \texttt{34303232}. The panel
+        says it is encoded, but does not specify the encoding so we need to do
+        some more investigation. The first thing to try would be to read the
+        documents available to see if they say anything of interest.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={34303231}]{Vulnerabilities/Path 3/HPE/images/34303231.png}
+            \includegraphics[keepaspectratio,alt={34303232}]{Vulnerabilities/Path 3/HPE/images/34303232.png}
+        \end{center}
+
+        After reading the contents of both of these documents, there doesn't
+        seem to be anything useful. However, the URLs for each document are
+        interesting; they follow the
+        \texttt{/document/\textless{}number\textgreater{}} format specified on
+        the panel, so we may be able to try and look at other documents by
+        changing this value. As a test, we can try and navigate to
+        \texttt{/document/34303233} to see if there is any additional
+        information we can get access to.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={34303233}]{Vulnerabilities/Path 3/HPE/images/34303233.png}
+        \end{center}
+
+        This has allowed us to view an additional document, despite it not being
+        on our dashboard. This document specifically belongs to M. Okonkwo,
+        meaning that our permissions aren't being checked when accessing
+        documents which we may be able to take advantage of. This document
+        specifically says that there is, supposedly, a maintenance snapshot for
+        NetOps under document 48879. This is something we should probably look
+        at, so let's try navigating to \texttt{/document/48879} to see if we can
+        find anything.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={48879}]{Vulnerabilities/Path 3/HPE/images/48879.png}
+        \end{center}
+
+        This has returned that there is no results, so 48879 likely refers to
+        the decoded number in the header. Therefore, we need to try and find
+        what encoding scheme the URL uses to try and view this document. So far,
+        all we know is that the document encoding can contain numbers which
+        isn't very helpful as many encoding schemes can contain numbers.
+        CyberChef contains many tools to encode and decode tools, so we can try
+        different encoding schemes to see how this value is encoded and try to
+        apply it to 44879.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={cyberchef}]{Vulnerabilities/Path 3/HPE/images/cyberchef.png}
+        \end{center}
+
+        CyberChef has suggested to decode this value using Hex, which converts
+        34303233 to 4023 (in decimal). This is worth exploring, so we need to
+        convert 48879 to Hex and then attempt to use that as the URL
+        parameter.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={conversion}]{Vulnerabilities/Path 3/HPE/images/conversion.png}
+        \end{center}
+
+        Converting 44879 to Hex has resulted in 34 38 38 37 39, or 3438383739
+        which is a familiar format. Now all we need to do is try and access
+        \texttt{/document/3438383739} and see if we get a result.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={escalation}]{Vulnerabilities/Path 3/HPE/images/escalation.png}
+        \end{center}
+
+        This has successfully retrieved the maintenance snapshot referred to
+        earlier, which has a lot of information. Among this information is the
+        flag for this challenge, which is \texttt{CITS3006\{2cXVYDsVXj\}}.
 
     \subsection*{Command Injection (Zarin)}
+        Looking at the maintenance snapshot again indicates that the server has
+        telnet enabled and provides some credentials to access it. Specifically,
+        it lists the port number (\texttt{mgmt.telnet.port}), username
+        (\texttt{mgmt.telnet.user}), and password
+        (\texttt{mgmt.telnet.pass\_enc}) that are needed to connect to the
+        machine. However, the password is encrypted which means we have to
+        decrypt it. The snapshot appears to list the encryption scheme for the
+        password (\texttt{mgmt.telnet.enc}), which it says uses
+        \texttt{xor0x5a+base64}. As the password ends in \texttt{==}, we can
+        assume that the base64 encoding was done last so this can be decoded to
+        get the XOR'd password. This can be done using
+        \texttt{echo\ HDs2OWo0eSguKHtoaA==\ \textbar{}\ base64\ -d\ \textbar{}\ xxd}
+        to ensure that we aren't losing any bytes in the output.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={decode}]{Vulnerabilities/Path 3/Network/images/decode.png}
+        \end{center}
+
+        This output indicates that the Bash shell can't display one of the
+        bytes, so the Base64 decoding needs to be done at the same time as the
+        XORing to ensure that no bytes are lost (as otherwise the password will
+        be incomplete). This can be done using Python, which has a native XOR
+        operator and has the \texttt{base64} library as part of its standard
+        library. The password can be recovered using
+        \texttt{python3\ -c\ "import\ base64;\ print(\textquotesingle{}\textquotesingle{}.join(chr(b\^{}0x5A)\ for\ b\ in\ base64.b64decode(\textquotesingle{}HDs2OWo0eSguKHtoaA==\textquotesingle{})))"}.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={recovery}]{Vulnerabilities/Path 3/Network/images/recovery.png}
+        \end{center}
+
+        This has recovered the password \texttt{Falc0n\#rtr!22}, meaning we can
+        now telnet into the server. Note that \texttt{localhost} is used instead
+        of the container's IP below, but both should work the same.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={login}]{Vulnerabilities/Path 3/Network/images/login.png}
+        \end{center}
+
+        Now that we have logged into the machine, we can try and see what this
+        is used for. There are two notices that are shown immediately upon
+        login; one that indicates command input is sanitised, and another that
+        indicates that some sort of maintenance artefact is located at
+        \texttt{/opt/maint/rtr-01.snapshot}. As this was done for security
+        hardening purposes, this file likely contains private information which
+        we may be able to use. We don't know what commands we have access to, so
+        we need to list them with \texttt{help}.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={help}]{Vulnerabilities/Path 3/Network/images/help.png}
+        \end{center}
+
+        It looks like the only commands we have access to are \texttt{ping},
+        \texttt{status}, \texttt{help}, and \texttt{exit}. \texttt{help} and
+        \texttt{exit} won't be helpful to us (this is shown after using
+        \texttt{help} and leaving won't get us anywhere) so we need to look at
+        \texttt{ping} and \texttt{status}. It looks like \texttt{ping} is input
+        sanitised, so it is likely that this has some sort of exploit. As a
+        test, we can see what the \texttt{ping} command returns when given
+        random data since this is likely how we are able to read that
+        maintenance file identified earlier.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={test\_ping}]{Vulnerabilities/Path 3/Network/images/ping_test.png}
+        \end{center}
+
+        It looks like \texttt{ping} will print whatever text is passed to it if
+        it cannot resolve it to an IP address, meaning we may be able to use it
+        to print the contents of the maintance file. We need to see how this
+        \texttt{ping} command works before we do anything else.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={test\_sanitisation}]{Vulnerabilities/Path 3/Network/images/test_sanitisation.png}
+        \end{center}
+
+        After trying to chain multiple \texttt{ping} commands together, the
+        input sanitisation was triggered. This likely means that the commands
+        are being processed by some shell, which could possibly expand our
+        available options. To confirm that the commands are, in fact, being
+        processed by a shell interpreter, we can craft a payload to cause the
+        shell to error rather than the \texttt{ping} command. This can be done
+        simply using an open bracket (i.e.~\texttt{ping\ (}), which should cause
+        the shell to error.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={shell}]{Vulnerabilities/Path 3/Network/images/shell.png}
+        \end{center}
+
+        As suspected, the commands are being processed by a shell (and more
+        specifically by \texttt{bash}). This means that we can potentially read
+        the file by using \texttt{cat} on the maintenance file in a subshell,
+        since \texttt{bash} will expand the subshell before executing
+        \texttt{ping}. We can try this by running
+        \texttt{ping\ \$(cat\ /opt/maint/rtr-01.snapshot)}, which should
+        hopefully read the file.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={subshell}]{Vulnerabilities/Path 3/Network/images/subshell.png}
+        \end{center}
+
+        This has resulted in an invalid character being detected, so we need to
+        figure out which one is being blocked. We know that brackets are already
+        accepted, so we just need to test \texttt{\$} and \texttt{}.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={illegal}]{Vulnerabilities/Path 3/Network/images/illegal.png}
+        \end{center}
+
+        Unexpectedly, it seems like \texttt{} is the invalid character.
+        Fortunately, there is an easy solution for this; \texttt{bash} has a
+        special shell variable called \texttt{IFS} (or Internal Field Separator)
+        that can be used to represent whitespace. Although it is typically used
+        for word-splitting, we can use it act as whitespace to run this command.
+        This can be done using
+        \texttt{ping\ \$(cat\$\{IFS\}/opt/maint/rtr-01.snapshot)}.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={finale}]{Vulnerabilities/Path 3/Network/images/finale.png}
+        \end{center}
+
+        This has printed the contents of the file, allowing us to see that the
+        flag for this challenge is \texttt{CITS3006\{24n4CBiT2K\}}.
 
     \subsection*{\texttt{rbp} Manipulation (Isaac)}
-        This vulnerability is solved using \texttt{gef}. To begin, the program
-        must be called using \texttt{gef\ ./rand}. However, trying to run the
-        program at all leads to an error - the program uses the
-        \texttt{ptrace()} function to exit immediately if a debugger is detected
-        which is a common strategy used by programs.\\
+        Looking at the output of the maintenance file, we can see that it says
+        \texttt{ota-firmware::http://ROUTER-HOST:8081/fw/1edca15d3306/acc-rtr01-fw.elf}.
+        This seems to indicate that some sort of firmware is stored at
+        \texttt{http://ROUTER-HOST:8081/fw/1edca15d3306/acc-rtr01-fw.elf}, which
+        we can download onto our host using
+        \texttt{wget\ http://localhost:8081/fw/1edca15d3306/acc-rtr01-fw.elf}.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={run}]{Vulnerabilities/Path 3/RE/images/run.png}
+            \includegraphics[keepaspectratio,alt={wget}]{Vulnerabilities/Path 3/RE/images/wget.png}
         \end{center}
 
-        The program can still be disassembled using \texttt{disas\ main} to
-        inspect what it does. This is where the \texttt{ptrace} call in the
-        program can be found.\\
+        Before we do anything, the binary will be renamed to \texttt{bin} so
+        that it is easier to interact with in the shell.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={ptrace}]{Vulnerabilities/Path 3/RE/images/ptrace.png}
+            \includegraphics[keepaspectratio,alt={rename}]{Vulnerabilities/Path 3/RE/images/rename.png}
         \end{center}
 
-        If the binary's properties are checked using \texttt{file\ rand}, an
-        observer may notice that the binary is dynamically linked using the
-        system's libraries at runtime. This can be confirmed by looking at the
-        output of a statically linked binary, which explicitly says that.\\
+        Now that we have the binary on our system, we can inspect it to see what
+        it does. We can see what it does by calling \texttt{./bin} after making
+        sure it is executable with \texttt{chmod\ +x\ bin}.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={dll}]{Vulnerabilities/Path 3/RE/images/dll.png}
+            \includegraphics[keepaspectratio,alt={bin}]{Vulnerabilities/Path 3/RE/images/bin.png}
+        \end{center}   
+
+        The program is asking us for some sort of password, which we obviously
+        don't have. However, we should see what it does given input anyway since
+        that could guide us to what we have to do.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={test}]{Vulnerabilities/Path 3/RE/images/test.png}
         \end{center}
 
-        Although this makes the binary smaller since it doesn't have to include
-        any system functions, it becomes vulnerable to an \texttt{LD\_PRELOAD}
-        attack. \texttt{LD\_PRELOAD} is an environment variable which is used to
-        find shared libraries for system functions. This can be exploited by
-        writing a custom \texttt{ptrace} library routine that always returns 0
-        to bypass this debug check entirely. This is a simple C script that
-        defines the \texttt{ptrace} function, such as the following:
+        After trying a random password, the program literally returns nothing.
+        We can try to check any embedded strings in the program using
+        \texttt{strings\ bin}, which may contain the password for the binary in
+        plaintext.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={strings}]{Vulnerabilities/Path 3/RE/images/strings.png}
+        \end{center}
+
+        The strings seem to primarily be referencing functions, but there are
+        some notable strings that can be seen in the binary. There's the
+        password entry text, a random string of numbers
+        (\texttt{4918347965232805349}), and a piece of string that seems to
+        imply that the flag is printed somewhere (but likely obfuscated in some
+        form). The string of numbers is interesting, and could be the password
+        so we can try it and see what happens.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={failed}]{Vulnerabilities/Path 3/RE/images/failed_password.png}
+        \end{center}
+
+        This has also caused nothing to happen, so we need to investigate
+        something else. We can also inspect the properties of the binary using
+        \texttt{file\ bin}, which may have something that can be exploited.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={file}]{Vulnerabilities/Path 3/RE/images/file.png}
+        \end{center}
+
+        This appears to be a fairly standard binary. However, it is dynamically
+        linked meaning that libraries are loaded at runtime instead of at
+        compile time. This means it could potentially be vulnerable to an
+        \texttt{LD\_PRELOAD} attack, but we have to find a function that can be
+        bypassed to actually exploit this. It is also stripped, meaning that we
+        may be able to view function names through a debugger. Since we have
+        access to the binary on our local machine, we can attach it to a
+        debugger (like \texttt{gef}) to see how it works internally and identify
+        any functions which could be bypassed using this method.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={debugger}]{Vulnerabilities/Path 3/RE/images/debugger.png}
+        \end{center}
+
+        After attempting to run it with the debugger, it leads to an error. It
+        is likely using some anti-debugger technique to prevent it being run in
+        debuggers, which we can check using \texttt{disas\ main}.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={disas\_main}]{Vulnerabilities/Path 3/RE/images/disas_main.png}
+        \end{center}
+
+        This disassembly has shown a \texttt{ptrace} function call, which is
+        commonly used to prevent programs being debugged. By taking advantage of
+        the fact that this binary is dynamically linked, we can write a custom
+        implementation of this function that allows us to bypass this check
+        entirely. All this needs to do is return 0, and can be written like the
+        following:
 
         \begin{verbatim}
         long ptrace(int request, int pid, void *addr, void *data) {
@@ -454,36 +835,23 @@
         \end{verbatim}
 
         To make this available as a shared library, it can be compiled as
-        \texttt{gcc\ -shared\ ptrace.c\ -o\ ptrace.so}. This can then be put
-        into the environment in \texttt{gef} using
+        \texttt{gcc\ -shared\ ptrace.c\ -o\ ptrace.so}.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={shared}]{Vulnerabilities/Path 3/RE/images/shared.png}
+        \end{center}
+
+        Now that the library has been compiled, we can load it when we start
+        running the program. This can be put into the environment using
         \texttt{set\ environment\ LD\_PRELOAD=./ptrace.so}, which will cause any
-        \texttt{ptrace()} call to use this function instead.\\
+        \texttt{ptrace()} call to use this function instead.
         \begin{center}
             \includegraphics[keepaspectratio,alt={bypass}]{Vulnerabilities/Path 3/RE/images/bypass.png}
         \end{center}
 
-        Now that we are into the program, we can actually investigate it. It
-        seems to be asking for a password, but we don't know what the password
-        is so we'll have to look elsewhere. The first place to investigate would
-        be any embedded strings in the program, which can be dumped using
-        \texttt{strings\ rand}.\\
-        \begin{center}
-            \includegraphics[keepaspectratio,alt={strings}]{Vulnerabilities/Path 3/RE/images/strings.png}
-        \end{center}
-
-        There are several notable strings that can be found in the program.
-        There's the debugger string seen earlier, the password entry text, a
-        random string of numbers (\texttt{4918347965232805349}), and a piece of
-        string that seems to imply that the flag is printed somewhere (but
-        likely obfuscated in some form). The string of numbers is interesting,
-        and could be the password so we can try it and see what happens.\\
-        \begin{center}
-            \includegraphics[keepaspectratio,alt={failed}]{Vulnerabilities/Path 3/RE/images/failed_password.png}
-        \end{center}
-
-        This has caused nothing to happen, so some more investigation is
-        necessary. As identified earlier, the binary isn't stripped so we could
-        take a look at what functions the binary includes.\\
+        Now that we have access to the program, we can investigate it further.
+        We still don't know what the password is, so we need to find some
+        further information. As we know the binary isn't stripped, we can have a
+        look at some of the functions the binary includes.
         \begin{center}
             \includegraphics[keepaspectratio,alt={functions}]{Vulnerabilities/Path 3/RE/images/functions.png}
         \end{center}
@@ -491,108 +859,97 @@
         These are all C and system functions, with the exceptions of
         \texttt{main} and \texttt{hash}. \texttt{main} isn't interesting since
         all standlone C binaries will include one, but \texttt{hash} is
-        interesting and could indicate that the password is hashed and perhaps
-        that's what the random string of numbers was. We don't expect
-        \texttt{hash} to contain any useful information since it just sounds
-        like a hashing function, so exploring \texttt{main} again will be the
-        next step. Just to make it easier, this will be done using Ghidra.\\
+        interesting and likely indicates that the password is hashed before
+        being checked. We don't expect \texttt{hash} to contain any useful
+        information since it just sounds like a hashing function, so exploring
+        \texttt{main} again will be the next step. Just to make it easier, this
+        will be done using Ghidra.
         \begin{center}
             \includegraphics[keepaspectratio,alt={decompiled}]{Vulnerabilities/Path 3/RE/images/decompiled_main.png}
         \end{center}
 
         This decompilation of \texttt{main} produced by Ghidra has a few points
-        of interest: - The \texttt{ptrace} call definitely terminates if it
-        succeeds - The input is hashed and passed as a string - The hash is
-        compared to \texttt{4918347965232805349} To make viewing this
-        decompilation easier, the variables can be renamed.\\
+        of interest: - The \texttt{ptrace} call terminates program execution if
+        it succeeds - The input is hashed and passed as a string - The hash is
+        compared to \texttt{4918347965232805349} (which is the string identified
+        earlier) To make viewing this decompilation easier, the variables can be
+        renamed.
         \begin{center}
             \includegraphics[keepaspectratio,alt={clean}]{Vulnerabilities/Path 3/RE/images/decompiled_main_clean.png}
         \end{center}
 
         After cleaning up the decompilation, it seems like the hash value is
-        used to seed a random number generator. However, to enter this branch
-        the first thing we need to do is find a password that hashes to the
-        value \texttt{4918347965232805349}. This could be brute forced, but this
-        will take a long time. Instead, we can use \texttt{gef} to insert this
-        value into memory just before the string comparison to enter the branch.
-        This requires looking at the assembly to find out where the password
-        input is stored in memory so we can adjust its value.\\
+        used to seed a random number generator using \texttt{srand}. To confirm
+        this, we need toenter this branch which we can do by finding a password
+        that hashes to the value \texttt{4918347965232805349}. Although this
+        could be brute forced, this will take a long time; instead, we can use
+        \texttt{gef} to insert this value into memory just before the string
+        comparison to enter this branch. This requires looking at the
+        disassembled \texttt{main} function identify where the password input is
+        stored in memory so we can adjust its value directly.
         \begin{center}
             \includegraphics[keepaspectratio,alt={scanf}]{Vulnerabilities/Path 3/RE/images/gef_scanf.png}
         \end{center}
 
         At various points, there are a few addresses that have data being
-        transferred into them: - \texttt{rbp\ -\ 0xf} - \texttt{rbp\ -\ 0x120} -
-        \texttt{rbp\ -\ 0x40} - \texttt{rbp\ -\ 0x118} The one that sticks out
-        the most is in the instructions before the \texttt{hash} function is
-        called. The \texttt{lea} instruction is used to move the memory held in
-        \texttt{rbp\ -\ 0x40} to the \texttt{rax} register. This is then moved
-        to the \texttt{rdi} register, which is where the first argument for
-        functions is stored. As the \texttt{hash} function is called directly
-        afterwards, this seems like the perfect candidate for where password
-        input is stored. To confirm this, a breakpoint can be placed just before
-        the \texttt{hash} function (using \texttt{b\ *0x1239}) and the
-        \texttt{rdi} register inspected.\\
+        transferred into them: - \texttt{rbp\ -\ 0xb0} - \texttt{rbp\ -\ 0x250}
+        - \texttt{rbp\ -\ 0x248}
+
+        The one that sticks out the most is in the instructions before the
+        \texttt{hash} function is called. The \texttt{lea} instruction is used
+        to move the memory held in \texttt{rbp\ -\ 0xb0} to the \texttt{rax}
+        register. This is then moved to the \texttt{rdi} register, which is
+        where the first argument for functions is stored. As the \texttt{hash}
+        function is called directly afterwards, this seems like the perfect
+        candidate for where password input is stored. To confirm this, a
+        breakpoint can be placed just before the \texttt{hash} function (using
+        \texttt{b\ *0x555555555249}) and the \texttt{rdi} register inspected.
         \begin{center}
             \includegraphics[keepaspectratio,alt={rdi}]{Vulnerabilities/Path 3/RE/images/rdi.png}
         \end{center}
 
         As expected, the \texttt{rdi} register (and \texttt{rax} register)
         contains the input password. Therefore, the input password is contained
-        at \texttt{rbp\ -\ 0x40}. We can utilise this fact to force this memory
+        at \texttt{rbp\ -\ 0xb0}. We can utilise this fact to force this memory
         to be the hash value, bypassing the need to find the password entirely.
         This can be done by setting a breakpoint at the \texttt{strcmp}
-        instruction, changing the value of \texttt{rbp\ -\ 0x40} (using
-        \texttt{set\ \{char{[}20{]}\}(\$rbp-0x40)}) to the ``correct'' hash
-        value, and then continuing function execution.\\
+        instruction (using \texttt{b\ *0x0000555555555391}), changing the value
+        of \texttt{rbp\ -\ 0xb0} to the ``correct'' hash value using
+        \texttt{set\ \{char{[}20{]}\}(\$rbp-0xb0)\ =\ "4918347965232805349"},
+        and then continuing function execution.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={rbp}]{Vulnerabilities/Path 3/RE/images/rbp-0x40.png}
+            \includegraphics[keepaspectratio,alt={rbp}]{Vulnerabilities/Path 3/RE/images/rbp-0xb0.png}
         \end{center}
 
         As shown, this has actually allowed program execution to continue within
-        the branch. However, the output does not look as expected. This probably
-        has something to do with the random seed identified earlier, which was
-        identified earlier to use the hashed value. Since changing the value at
-        \texttt{rbp-0x40} only changed the string representation, we also need
-        to change the value of the hash value itself. In the earlier
-        disassembled code, \texttt{rbp-0x120} seems like a good candidate since
-        that is the value accessed directly after the \texttt{hash} function
-        returns so we can inspect that.\\
+        the branch but the output does not look as expected. This probably has
+        something to do with the random seed identified earlier, which uses the
+        hashed value as the seed. Since changing the value at \texttt{rbp-0xb0}
+        only changed the string representation, we also need to change the value
+        of the hash value itself. In the earlier disassembled code,
+        \texttt{rbp-0x250} seems like a good candidate since that is the value
+        accessed directly after the \texttt{hash} function returns so we can
+        inspect that.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={rbp}]{Vulnerabilities/Path 3/RE/images/rbp-0x120.png}
+            \includegraphics[keepaspectratio,alt={rbp}]{Vulnerabilities/Path 3/RE/images/rbp-0x250.png}
         \end{center}
 
-        As shown, the address at \texttt{rbp\ -\ 0x120} holds the exact same
-        value (in decimal) as \texttt{rdi} (which, in this case, is the string
-        representation of the hash of the password input). As such, it can be
-        changed using \texttt{set\ \{long\}(\$rbp\ -\ 0x120)} to ensure that
-        both \texttt{rbp\ -\ 0x120} and \texttt{rbp\ -\ 0x40} hold the same
-        value. If both of these are changed and the program execution continues,
-        the following results:\\
+        As shown, the address at \texttt{rbp\ -\ 0x250} holds the exact same
+        value (in decimal) as \texttt{rdi} which, in this case, is the string
+        representation of the hash of the password input. As such, it can be
+        changed using
+        \texttt{set\ \{long\}(\$rbp\ -\ 0x250)\ =\ 4918347965232805349} to
+        ensure that both \texttt{rbp\ -\ 0x250} and \texttt{rbp\ -\ 0xb0} hold
+        the same value. If both of these are changed and the program execution
+        continues, the following results:
         \begin{center}
             \includegraphics[keepaspectratio,alt={finish}]{Vulnerabilities/Path 3/RE/images/finish.png}
         \end{center}
 
-        This has revealed the flag, which is now visible in plaintext. As such,
-        the program has successfully been reversed engineered.
-
-        For clarity, the following commands need to be run in order to achieve
-        this:
-        \begin{verbatim}
-        gef ./rand
-        set environment LD_PRELOAD=./ptrace.so
-        b main
-        r
-        disas main
-        b *0x555555555140
-        c
-        set {char[20]}($rbp-0x40) = "4918347965232805349"
-        set {long}($rbp-0x120) = 4918347965232805349
-        c
-        \end{verbatim}
+        This has revealed the flag, which is
+        \texttt{flag\{U\_d0Nt\_3V3n\_N33D\_dA\_pAssWord11!??\}}. Some
+        credentials have also been revealed, which will be required to complete
+        the next challenge.
 
     \subsection*{Sudo \texttt{NOPASSWD} Misconfiguration (Zarin)}
-
-    \section*{Individual Contribution}
-    
 \end{document}
