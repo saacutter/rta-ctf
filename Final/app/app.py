@@ -478,8 +478,7 @@ def team_bravo_switch_account():
 
 @app.route("/login/team-charlie")
 def team_charlie():
-    host = request.host.split(":")[0]
-    return redirect(f"http://{host}:8090/")
+    return redirect(f"http://localhost:8090/")
 
 
 @app.route("/reset-all")
