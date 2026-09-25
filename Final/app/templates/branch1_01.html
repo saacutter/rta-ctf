@@ -121,6 +121,14 @@
   }
 
   .back-link:hover{ color:#fff; border-color:#8d9aa8; }
+
+  a { color:var(--amber); text-decoration:none; }
+
+  button, .btn {
+    display: block; width: fit-content; color: #c7ccd4; border:1px solid #e9edf2;
+    padding:10px; font-family:inherit; font-size:11px;
+    cursor:pointer; margin-top: 1em;
+  }
 </style>
 </head>
 
@@ -150,12 +158,12 @@
         <div class="note">
           <div class="note-title">Breach Alert</div>
           <span>We recently noticed suspicious activity on our servers. Initial triage found a binary hidden on the file system. I've contained it for now, but I haven't found what it is supposed to do yet. IT should take a look before I delete it.</span>
-          <a href="static/uploads/contained" download>Binary</a>
+          <a class="btn" href="{{ url_for('static', filename='uploads/contained') }}" download>⇩&nbsp;contained</a>
         </div>
         <div class="note">
           <div class="note-title">RE: Breach Alert</div>
           <span>Looks like the binary wasn't the only thing left behind in the breach; an encrypted file was also left on the file system. I have no idea what it's supposed to be, but it appears to be communication from the attacker (possibly accidentally left behind). I have collected the messages into a single file for analysis, can someone take a look at it ASAP?</span>
-          <a href="static/uploads/rsa.enc" download>rsa.enc</a>
+          <a class="btn" href="{{ url_for('static', filename='uploads/rsa.enc') }}" download>⇩&nbsp;rsa.enc</a>
         </div>
         <div class="note">
           <div class="note-title">Incident Follow-Up</div>
