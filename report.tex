@@ -58,11 +58,11 @@
 
     \section*{SQL Injection (Mohammad + Dhul)}
         Once the application is started, the entry point is located at both
-        \texttt{http://localhost:5005} or
+        \texttt{http://localhost:5005} or\\
         \texttt{http://\textless{}container\_IP\textgreater{}:5005}. This will
         bring us to the following web page.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={entry}]{Vulnerabilities/SQLi/images/entry.png}
+            \includegraphics[scale=0.65]{Vulnerabilities/SQLi/images/entry.png}
         \end{center}
 
         The only option available to us is the ``Sign In'' option in the top
@@ -70,14 +70,14 @@
         Access''. Obviously we want as much privilege as possible, so we will
         try ``Operator Access'' first.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={denial}]{Vulnerabilities/SQLi/images/denial.png}
+            \includegraphics[scale=0.65]{Vulnerabilities/SQLi/images/denial.png}
         \end{center}
 
         This leads to an error that it cannot be accessed. We should keep this
         in mind for later, but the only option left now is to try ``Guest
         Access''.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={guest}]{Vulnerabilities/SQLi/images/guest.png}
+            \includegraphics[scale=0.65]{Vulnerabilities/SQLi/images/guest.png}
         \end{center}
 
         This has led us to a fairly standard login panel. However, we don't know
@@ -86,7 +86,7 @@
         the operator panel by navigating to \texttt{/login/operator} and seeing
         if that works.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={operator}]{Vulnerabilities/SQLi/images/operator.png}
+            \includegraphics[scale=0.65]{Vulnerabilities/SQLi/images/operator.png}
         \end{center}
 
         This has led to the operator login panel, which means we are on the
@@ -95,12 +95,12 @@
         of 2 apparently. We don't know any credentials yet so we should try to
         enter anything and see what happens.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={stage\_1}]{Vulnerabilities/SQLi/images/stage_1.png}
+            \includegraphics[scale=0.65]{Vulnerabilities/SQLi/images/stage_1.png}
         \end{center}
 
         Visually this didn't change anything, but the URL changed with a new
         \texttt{query} parameter that appears to be an SQL query
-        (\texttt{SELECT\%20username\%2C\%20role\%2C\%20clearance\%20FROM\%20users\%20WHERE\%20username\%20\%3D\%20\%27test\%27\%20AND\%20password\%20\%3D\%20\%27test\%27}
+        (\texttt{SELECT\%20username\%2C\%20role\%2C\%20clearance\%20FROM\%20users\%20WHERE\%20\\username\%20\%3D\%20\%27test\%27\%20AND\%20password\%20\%3D\%20\%27test\%27}
         or
         \texttt{SELECT\ username\%2C\ role\%2C\ clearance\ FROM\ users\ WHERE\ username\ \%3D\ \textquotesingle{}test\textquotesingle{}\ AND\ password\ \%3D\ \textquotesingle{}test\textquotesingle{}}
         depending on the browser being used). This is URL encoded, but by
@@ -111,9 +111,9 @@
         entirely so that we only have to match the username. We don't know the
         username, but we can probably assume that one of them is \texttt{admin}
         or \texttt{administrator}. We can try this using the URL
-        \texttt{http://localhost:5005/login/operator?query=ELECT\%20username\%2C\%20role\%2C\%20clearance\%20FROM\%20users\%20WHERE\%20username\%20\%3D\%20\%27admin\%27}.
+        \texttt{http://localhost:5005/login/operator?query=ELECT\%20username\%2C\%20role\\\%2C\%20clearance\%20FROM\%20users\%20WHERE\%20username\%20\%3D\%20\%27admin\%27}.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={stage\_2}]{Vulnerabilities/SQLi/images/stage_2.png}
+            \includegraphics[scale=0.65]{Vulnerabilities/SQLi/images/stage_2.png}
         \end{center}
 
         This had led to stage 2 of the login panel, indicating that
@@ -121,7 +121,7 @@
         further information so we need to test this panel to see if anything
         happens.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={test\_2}]{Vulnerabilities/SQLi/images/test_2.png}
+            \includegraphics[scale=0.65]{Vulnerabilities/SQLi/images/test_2.png}
         \end{center}
 
         After entering some test credentials, there are no visual changes to the
@@ -132,7 +132,7 @@
         \texttt{\textquotesingle{}\ OR\ 1=1\ -\/-} as the username to see if
         anything happens.
         \begin{center}
-            \includegraphics[keepaspectratio,alt={dashboard}]{Vulnerabilities/SQLi/images/dashboard.png}
+            \includegraphics[scale=0.65]{Vulnerabilities/SQLi/images/dashboard.png}
         \end{center}
 
         This has allowed us to login, showing the dashboard for the web
