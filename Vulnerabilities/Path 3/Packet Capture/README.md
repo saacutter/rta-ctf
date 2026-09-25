@@ -18,7 +18,7 @@ This has narrowed us down to two packets, which is just as the notes indicated. 
 
 It looks like the first request (`tcp.stream eq 4`) went through and the second request (`tcp.stream eq 2`) failed. Consequently, we can assume that the first request auth token (`eyJ1Ijoiay5yZXllcyIsInAiOiJSM3llcyFvcHMyMDI3In0=`) is the one we are looking for. 
 
-Although we know that it is encoded, we don't know how it is encoded. However, there is an `=` sign at the end of the token. This is common with Base64 encoding, so we can try and decode it and see if we get anything. \
+Although we know that it is encoded, we don't know how it is encoded. However, there is an `=` sign at the end of the token. This is common with Base64 encoding, so we can try and decode it and see if we get anything. This can be done on our host using `echo eyJ1Ijoiay5yZXllcyIsInAiOiJSM3llcyFvcHMyMDI3In0 | base64 -d` and looking at the output. \
 ![decode](images/decode.png)
 
 After decoding, it looks like the username is `k.reyes` and the password is `R3yes!ops2027`. Now that we have the username and password, we can try and sign into the operations portal using these credentials to see if they work. \
