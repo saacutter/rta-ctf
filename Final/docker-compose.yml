@@ -1,6 +1,6 @@
 services:
   # Paths 1 + 2
-  web:
+  aerospace-web:
     build: .
     container_name: aerospace-web
     ports:
