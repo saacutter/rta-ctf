@@ -7,3 +7,16 @@
 **/*.fls
 **/*.log
 **/*.synctex.gz
+
+# Python caches / compiled files
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS / archive junk
+.DS_Store
+__MACOSX/
+
+# Editor / OS cruft
+Thumbs.db
+*.swp

@@ -1,20 +1,47 @@
 services:
-
+  # Paths 1 + 2
   web:
     build: .
     container_name: aerospace-web
-
     ports:
       - "5005:5005"
       - "22:22"
       - "2121:2121"
       - "30000-30009:30000-30009"
-
     environment:
       - SECRET_KEY=${SECRET_KEY}
-
     volumes:
       - ./app/database.db:/app/database.db
       - ./app/ftp_share:/app/ftp_share
+    restart: unless-stopped
 
+  # Path 3
+  acc-console:
+    build:
+      context: .
+      dockerfile: zarin/step2-operator-console/Dockerfile
+    environment:
+      NETWORK_FLAG: "CITS3006{l4A5p3MGYr}"
+      HORIZONTAL_FLAG: "CITS3006{2cXVYDsVXj}"
+    ports:
+      - "8090:8090"
+    restart: unless-stopped
+
+  acc-router:
+    build:
+      context: zarin/step3-warhead-router
+      args:
+        FLAG: "CITS3006{24n4CBiT2K}"
+    ports:
+      - "23:23"
+      - "8081:8081"
+    restart: unless-stopped
+
+  acc-armctl:
+    build:
+      context: zarin/step4-vertical-privesc
+      args:
+        FLAG: "CITS3006{xyOTpUwAhd}"
+    ports:
+      - "2022:22"
     restart: unless-stopped
