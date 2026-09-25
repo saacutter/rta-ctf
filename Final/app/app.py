@@ -6,15 +6,11 @@ import base64
 import json
 import secrets
 import time
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me-in-production")
 
 DB_NAME = "database.db"
-
 
 def run_query(query):
     """Runs whatever query text it's given. Shared, intentionally
@@ -478,6 +474,13 @@ def team_bravo_switch_account():
         httponly=False,
     )
     return response
+
+
+@app.route("/login/team-charlie")
+def team_charlie():
+    host = request.host.split(":")[0]
+    return redirect(f"http://{host}:8090/")
+
 
 @app.route("/reset-all")
 def reset_all():
