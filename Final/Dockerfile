@@ -95,6 +95,7 @@ RUN chmod 4755 /opt/flc/tools/maint-diag
 RUN chmod 755 /opt/flc/tools
 RUN chown root:root /opt/flc/tools
 RUN cp /srv/flc/app/tools/generate_report.sh /opt/flc/tools/generate_report.sh && \
+    sed -i 's/\r$//' /opt/flc/tools/generate_report.sh && \
     chmod 755 /opt/flc/tools/generate_report.sh && \
     chown root:root /opt/flc/tools/generate_report.sh
 RUN printf '%s\n' \
