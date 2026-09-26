@@ -76,14 +76,15 @@ def login():
 
     if user:
         session["stage_two_complete"] = True
-        return render_template(
-        "dashboard.html",
-        action_url="/dashboard"
-    )
-    return render_template(
-        "login.html",
-        action_url="/login"
-    )
+        return redirect("/dashboard")
+    return render_template("login.html")
+
+
+@app.route("/dashboard")
+def dashboard():
+    if not session.get("stage_two_complete"):
+        return redirect("/")
+    return render_template("dashboard.html")
 
 def handle_reflected_query():
     query_param = request.args.get("query")
@@ -218,6 +219,46 @@ def team_alpha():
         "branch1_01.html"
     )
 
+ALPHA_VAULT_PASSWORD = os.environ.get("ALPHA_VAULT_PASSWORD", "AS!@DJshjdb@#aksjA^&%SJDBka*sbdjkas")
+ALPHA_HPE_PASSWORD = os.environ.get("ALPHA_HPE_PASSWORD", "JJZGBLPN")
+
+@app.route("/login/team-alpha/vault", methods=["GET", "POST"])
+def team_alpha_vault():
+    if request.method == "POST":
+        supplied = request.form.get("password", "")
+        if secrets.compare_digest(supplied, ALPHA_VAULT_PASSWORD):
+            session["alpha_vault_unlocked"] = True
+            return redirect(url_for("team_alpha_vault"))
+        return render_template(
+            "alpha_branch_vaultRE.html",
+            unlocked=False,
+            error="ACCESS DENIED — INCORRECT PASSPHRASE."
+        )
+
+    return render_template(
+        "alpha_branch_vaultRE.html",
+        unlocked=session.get("alpha_vault_unlocked", False),
+        error=None
+    )
+
+@app.route("/login/team-alpha/HPE", methods=["GET", "POST"])
+def team_alpha_HPE():
+    if request.method == "POST":
+        supplied = request.form.get("password", "")
+        if secrets.compare_digest(supplied, ALPHA_HPE_PASSWORD):
+            session["alpha_HPE_unlocked"] = True
+            return redirect(url_for("team_alpha_HPE"))
+        return render_template(
+            "alpha_branch_HPE.html",
+            unlocked=False,
+            error="ACCESS DENIED — INCORRECT PASSPHRASE."
+        )
+
+    return render_template(
+        "alpha_branch_HPE.html",
+        unlocked=session.get("alpha_HPE_unlocked", False),
+        error=None
+    )
 
 BRAVO_ACCOUNTS = {
     "castillo": {
