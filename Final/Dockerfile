@@ -141,7 +141,8 @@ WORKDIR /
 
 # Copy the entrypoint script to the machine
 COPY entrypoint.sh /usr/local/bin/entrypoint
-RUN chmod 700 /usr/local/bin/entrypoint
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint && \
+    chmod 700 /usr/local/bin/entrypoint
 RUN chown root:root /usr/local/bin/entrypoint
 
 CMD ["/usr/local/bin/entrypoint"]
