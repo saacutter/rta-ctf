@@ -215,6 +215,8 @@
         function would have never been found without reverse engineering it, so
         this binary has been completely reverse engineered.
 
+    \vspace{1em}
+
     \subsection*{Common Modulus RSA Attack (Isaac)}
         For this task, the only thing that is provided is \texttt{rsa.enc},
         which looks like the following.
@@ -232,7 +234,7 @@
         e2 = 5
         \end{verbatim}
 
-        This includes 6 different values - \texttt{n1}, \texttt{c1},
+        This includes 6 different values; \texttt{n1}, \texttt{c1},
         \texttt{e1}, \texttt{n2}, \texttt{c2}, and \texttt{e2}. The file name
         including \texttt{rsa} indicates that we are dealing with the RSA
         encryption algorithm, which means we know what each of these values
@@ -290,13 +292,23 @@
         Using the other value gained from the previous challenge, we can now
         move onto the next challenge.
 
+    \vspace{1em}
+
     \subsection*{Network (Dhul)}
+
+    \vspace{1em}
 
     \subsection*{Reverse Engineering (Mohammad)}
 
+    \vspace{1em}
+
     \subsection*{Horizontal Privilege (Senaya)}
 
+    \vspace{1em}
+
     \subsection*{AI (Zarin)}
+
+    \vspace{1em}
 
     \subsection*{\texttt{PATH} Hijacking (Isaac)}
         Now that we have gotten to the new user account, we can see what this
@@ -481,9 +493,15 @@
     \section*{Path Bravo}
     \subsection*{Web (Mohammad)}
 
+    \vspace{1em}
+
     \subsection*{Horizontal Privilege (Mohammad)}
 
+    \vspace{1em}
+
     \subsection*{Web (Senaya)}
+
+    \vspace{1em}
 
     \subsection*{Vertical Privilege (Senaya)}
 
@@ -565,6 +583,8 @@
         This has revealed the flag for the challenge, which is
         \texttt{CITS3006\{l4A5p3MGYr\}}.
 
+    \vspace{1em}
+
     \subsection*{Insecure Direct Object Reference (IDOR) (Zarin)}
         The panel shows the document records for the current user, with the only
         two available being \texttt{34303231} and \texttt{34303232}. The panel
@@ -630,6 +650,8 @@
         This has successfully retrieved the maintenance snapshot referred to
         earlier, which has a lot of information. Among this information is the
         flag for this challenge, which is \texttt{CITS3006\{2cXVYDsVXj\}}.
+
+    \vspace{1em}
 
     \subsection*{Command Injection (Zarin)}
         Looking at the maintenance snapshot again indicates that the server has
@@ -743,6 +765,8 @@
 
         This has printed the contents of the file, allowing us to see that the
         flag for this challenge is \texttt{CITS3006\{24n4CBiT2K\}}.
+
+    \vspace{1em}
 
     \subsection*{\texttt{rbp} Manipulation (Isaac)}
         Looking at the output of the maintenance file, we can see that it says
@@ -951,5 +975,52 @@
         credentials have also been revealed, which will be required to complete
         the next challenge.
 
+    \vspace{1em}
+
     \subsection*{Sudo \texttt{NOPASSWD} Misconfiguration (Zarin)}
+        Now that we have some credentials, we can use them to access the server.
+        This is done with SSH, which listens on port 2022.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={login}]{Vulnerabilities/Path 3/VPE/images/login.png}
+        \end{center}
+
+        Now that we have signed in, we need to perform reconnaissance. The entry
+        message says that we have ``a few elevated maintenance rights'' so we
+        should check what we have access to. This involves checking the
+        permissions of files in our home directory (with \texttt{ls\ -al}),
+        looking for any setuid binaries (with
+        \texttt{find\ /\ -type\ f\ -perm\ -4000\ 2\textgreater{}/dev/null}),
+        looking for any capabilities (with
+        \texttt{getcap\ -r\ /\ 2\textgreater{}/dev/null}), and looking for any
+        binaries we can run as root (with \texttt{sudo\ -l}).
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={privileges}]{Vulnerabilities/Path 3/VPE/images/privileges.png}
+        \end{center}
+
+        There isn't anything interesting in our home directory, but it looks
+        like there are a few binaries with the setuid bit enabled and a single
+        binary (\texttt{find}) that can be run using \texttt{sudo} with no
+        password. This is actually the most interesting one, and is worth
+        exploring further. We can look at what command line arguments it accepts
+        using \texttt{find\ -\/-help}, as it may have something that can be
+        exploited.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={help}]{Vulnerabilities/Path 3/VPE/images/help.png}
+        \end{center}
+
+        It looks like it supports an \texttt{-exec} flag, which can seemingly
+        run arbitrary commands. We can test this out by crafting a payload that
+        causes the command to run \texttt{/bin/bash}, which should give us a
+        root shell when running with \texttt{sudo} (as \texttt{sudo} makes it
+        run as root and no password is required to run \texttt{find} using
+        \texttt{sudo}). This only needs to be a simple payload that follows this
+        command's conventions, so
+        \texttt{sudo\ find\ -exec\ /bin/bash\ \textbackslash{};} should
+        hopefully work.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={exec}]{Vulnerabilities/Path 3/VPE/images/exec.png}
+        \end{center}
+
+        This has given us a root shell, meaning this attack has been completed
+        successfully.
 \end{document}
