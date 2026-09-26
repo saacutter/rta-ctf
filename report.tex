@@ -49,9 +49,26 @@
     \newpage
 
     \section*{Introduction}
+    [INTRODUCTION]
+
+    The following is the exploit map for our submission. It consists of three
+    distinct paths; Path Alpha, Path Bravo, and Path Charlie. Each of these paths
+    eventually lead to a vertical privilege escalation to gain a root shell, every
+    previous vulnerability in the path to be satisfied before it can be exploited.
+    The categories that we believe each vulnerability belongs to is stated in brackets
+    underneath its name, so that they can be identified at a glance.
+
+    Note that there are two branches at the start of Path Alpha. This is because
+    the next vulnerability in the path (Reverse Engineering) can be accessed by completing
+    either the FTP Misconfiguration challenge OR the pair of \texttt{rip} Manipulation and
+    Common Modulus Attack (i.e. you can access the next challenge by completing 
+    $(\text{FTP}) \ \lor \ (\text{RE} \ \land \ \text{Cryptography})$). This gives some 
+    flexibility in how challenges can be completed, as completing both will lead to the 
+    same outcome.
+
     \begin{figure}[h]
         \centering
-        \includegraphics[height=15cm]{ExploitMap.png}
+        \includegraphics[scale=0.4]{ExploitMap.png}
     \end{figure}
 
     \newpage
