@@ -25,9 +25,13 @@ RUN echo "${LOWUSER} ALL=(root) NOPASSWD: /usr/bin/find" > /etc/sudoers.d/acc-ma
  && visudo -cf /etc/sudoers.d/acc-maint
 
 # final flag (root only), the column's disarm flag. rotate via FLAG build arg.
+# Dropped in the technician's home dir: fieldtech can see it on login but
+# cannot read it until they escalate to root.
 ARG FLAG="CITS3006{xyOTpUwAhd}"
 ENV FLAG=${FLAG}
-RUN echo "$FLAG" > /root/flag && chmod 600 /root/flag && chown root:root /root/flag
+RUN echo "$FLAG" > /home/fieldtech/disarm-authorization.txt \
+ && chmod 600 /home/fieldtech/disarm-authorization.txt \
+ && chown root:root /home/fieldtech/disarm-authorization.txt
 
 COPY motd /etc/motd
 

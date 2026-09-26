@@ -1,4 +1,4 @@
-# My route, network → horizontal PE → network → (Isaac RE) → vertical PE
+# route, network → horizontal PE → network → RE → vertical PE
 
 My part of the "disarm the warhead" challenge. Three routes to root; all needed to
 defuse. This is the **network** route, themed as the AEROSPACE COMMAND grid to match
@@ -25,7 +25,7 @@ skippable, and no step just hands over the final flag.
   via the IDOR (record #48879).
 - Web injection (router): `CITS3006{24n4CBiT2K}` , read out of the router via the
   command injection.
-- Vertical PE (root): `CITS3006{xyOTpUwAhd}` , the final disarm flag at `/root/flag`.
+- Vertical PE (root): `CITS3006{xyOTpUwAhd}` , the final disarm flag at `/home/fieldtech/disarm-authorization.txt`.
 
 All four are independent random values; none reveals the next stage, and stage
 progression is driven by the loot (credentials, firmware), not the flags. Isaac's RE
@@ -65,7 +65,7 @@ the portal login. That's what the shared hub's "Network" team tile should link t
 - **Step 4 (Isaac's)**, anti-debug (`ptrace`) bypassed with `LD_PRELOAD`, then a
   hash gate patched in memory; reveals the SSH login.
 - **Step 5**, a **NOPASSWD sudo rule** lets `fieldtech` run `find` as root;
-  `find -exec` spawns a root shell (GTFOBins) → `/root/flag`. Distinct from Isaac's
+  `find -exec` spawns a root shell (GTFOBins) → `/home/fieldtech/disarm-authorization.txt`. Distinct from Isaac's
   PATH hijack and Senaya's tar-wildcard.
 
 ## Hints, not spoilers
@@ -100,8 +100,8 @@ step3-warhead-router/
   Dockerfile
 
 step4-vertical-privesc/
-  motd, Dockerfile      creates fieldtech, NOPASSWD sudo on find, sshd, /root/flag root-only
-  entrypoint.sh         writes /root/flag from FLAG, runs sshd
+  motd, Dockerfile      creates fieldtech, NOPASSWD sudo on find, sshd, /home/fieldtech/disarm-authorization.txt root-only
+  entrypoint.sh         writes /home/fieldtech/disarm-authorization.txt from FLAG, runs sshd
   SOLUTION-vertical.md  the privesc walkthrough (sudo misconfig + GTFOBins)
 
 shared/aerospace.py     the AEROSPACE COMMAND theme (login card + jet backdrop)
