@@ -19,7 +19,7 @@ The strings seem to primarily be referencing functions, but there are some notab
 This has also caused nothing to happen, so we need to investigate something else. We can also inspect the properties of the binary using `file bin`, which may have something that can be exploited. \
 ![file](images/file.png)
 
-This appears to be a fairly standard binary. However, it is dynamically linked meaning that libraries are loaded at runtime instead of at compile time. This means it could potentially be vulnerable to an `LD_PRELOAD` attack, but we have to find a function that can be bypassed to actually exploit this. It is also stripped, meaning that we may be able to view function names through a debugger. Since we have access to the binary on our local machine, we can attach it to a debugger (like `gef`) to see how it works internally and identify any functions which could be bypassed using this method. \
+This appears to be a fairly standard binary. However, it is dynamically linked meaning that libraries are loaded at runtime instead of at compile time. This means it could potentially be vulnerable to an `LD_PRELOAD` attack, but we have to find a function that can be bypassed to actually exploit this. It is also unstripped, meaning that we may be able to view function names through a debugger. Since we have access to the binary on our local machine, we can attach it to a debugger (like `gef`) to see how it works internally and identify any functions which could be bypassed using this method. \
 ![debugger](images/debugger.png)
 
 After attempting to run it with the debugger, it leads to an error. It is likely using some anti-debugger technique to prevent it being run in debuggers, which we can check using `disas main`. \

@@ -878,7 +878,7 @@
         linked meaning that libraries are loaded at runtime instead of at
         compile time. This means it could potentially be vulnerable to an
         \texttt{LD\_PRELOAD} attack, but we have to find a function that can be
-        bypassed to actually exploit this. It is also stripped, meaning that we
+        bypassed to actually exploit this. It is also unstripped, meaning that we
         may be able to view function names through a debugger. Since we have
         access to the binary on our local machine, we can attach it to a
         debugger (like \texttt{gef}) to see how it works internally and identify
