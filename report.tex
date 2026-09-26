@@ -128,7 +128,7 @@
         entirely so that we only have to match the username. We don't know the
         username, but we can probably assume that one of them is \texttt{admin}
         or \texttt{administrator}. We can try this using the URL
-        \texttt{http://localhost:5005/login/operator?query=ELECT\%20username\%2C\%20role\\\%2C\%20clearance\%20FROM\%20users\%20WHERE\%20username\%20\%3D\%20\%27admin\%27}.
+        \texttt{http://localhost:5005/login/operator?query=SELECT\%20username\%2C\%20role\\\%2C\%20clearance\%20FROM\%20users\%20WHERE\%20username\%20\%3D\%20\%27admin\%27}.
         \begin{center}
             \includegraphics[scale=0.65]{Vulnerabilities/SQLi/images/stage_2.png}
         \end{center}
