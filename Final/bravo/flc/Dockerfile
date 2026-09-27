@@ -167,8 +167,11 @@ RUN chown -R root:www-data /srv/flc/app && \
 
 # Entrypoint 
 COPY entrypoint.sh /usr/local/bin/flc-entrypoint
-RUN chmod 700 /usr/local/bin/flc-entrypoint
-RUN chown root:root /usr/local/bin/flc-entrypoint
+
+RUN sed -i 's/\r$//' /usr/local/bin/flc-entrypoint && \
+    chmod 700 /usr/local/bin/flc-entrypoint && \
+    chown root:root /usr/local/bin/flc-entrypoint
+
 
 EXPOSE 5006
 CMD ["/usr/local/bin/flc-entrypoint"]
