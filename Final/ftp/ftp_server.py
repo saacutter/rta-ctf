@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from pyftpdlib.authorizers import DummyAuthorizer
@@ -15,6 +16,9 @@ def create_ftp_server():
     ChallengeFTPHandler.authorizer = authorizer
     ChallengeFTPHandler.banner = "Aerospace Research FTP Server"
     ChallengeFTPHandler.passive_ports = range(30000, 30010)
+    # PASV clients need the Docker host address, not the container address.
+    # EPSV clients use the address of their existing control connection.
+    ChallengeFTPHandler.masquerade_address = os.environ.get("FTP_PUBLIC_HOST") or None
 
     return FTPServer(("0.0.0.0", 2121), ChallengeFTPHandler)
 

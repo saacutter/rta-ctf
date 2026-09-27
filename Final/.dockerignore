@@ -4,3 +4,9 @@ __pycache__/
 .DS_Store
 .git/
 .env
+
+# FTP has its own build context; never send its files to the web build.
+ftp/
+# Also exclude the former locations if a local copy is left behind.
+app/ftp_share/
+app/ftp_server.py

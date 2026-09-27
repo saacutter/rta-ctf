@@ -516,14 +516,4 @@ def reset_all():
     return response
 
 if __name__ == "__main__":
-    from threading import Thread
-    from ftp_server import create_ftp_server
-
-    ftp_server = create_ftp_server()
-    ftp_thread = Thread(target=ftp_server.serve_forever, daemon=True)
-    ftp_thread.start()
-    try:
-        app.run(host="0.0.0.0", port=5005, debug=False, use_reloader=False)
-    finally:
-        ftp_server.close_all()
-        ftp_thread.join(timeout=2)
+    app.run(host="0.0.0.0", port=5005, debug=False, use_reloader=False)
