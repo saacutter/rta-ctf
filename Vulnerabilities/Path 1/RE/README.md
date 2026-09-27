@@ -1,21 +1,25 @@
-This vulnerability only requires `gef`, but `strings` and `ghidra` may be useful too.
-
-To begin, the binary can be inspected using `file re` to gain some information about its structure and how it was compiled since this could give us an indication of how it is vulnerable. \
+For this challenge, the only file we have access to is the `contained` binary. No specific information about the binary is mentioned on the dashboard, so we have to find this information ourselves. The first thing we can do is inspect the binary using `file contained` to gain some information about its structure and how it was compiled. \
 ![file](images/file.png)
 
-The binary seems to be pretty standard. The only notable aspects are that it is statically linked and not stripped, which could be exploited. However, we need more information. To see what the binary actually does, we can run it and see what happens. \
+The binary seems to be pretty standard, with the only notable aspects being that it is statically linked and not stripped. This doesn't mean anything to us right now, so we need to find some more information. Naturally, the next step is to actually run the binary and see what it does. \
 ![run](images/run.png)
 
-The binary asks for a password, and since we don't know what it is returns failure. It is possible that the password has just been written in plaintext in the binary, so we can dump the strings from the binary to investigate. However, as the binary is statically linked, there is a lot of noise in the binary. This dumps the strings from every single library that has been compiled with the binary, which makes it hard to determine what is unique to the binary and what was from a library. As such, we need to take another approach. Using a debugger like `gef` seems like the obvious next step, so we can try that. The obvious thing to do would be to see what the `main` function does, so that can be disassembled. \
+The binary asks for a password, but we don't know what it is so it returns failure. It is possible that the password has been written in plaintext in the binary, so we can dump the strings from the binary to investigate. \
+![strings](images/strings.png)
+
+Evidently, there is a lot of noise in the binary and there is a large number of strings that have been dumped in the binary (significantly more than shown due to screen size limitations). This is likely because the binary is statically linked, so it is dumping every string in the libraries that have been linked in addition to the strings from the binary itself. This makes it hard to determine what is unique to the binary an what was from one of the linked libraries, so we need to take another approach to find information. A debugger can be used to see how the binary functions internally, so we can try and inspect it using `gef ./contained`. \
+![debugger](images/debugger.png)
+
+The first thing we can try is to disassemble `main` to see what it does, which can be done using `disas main`. \
 ![main](images/main.png)
 
-From this disassembly, there doesn't seem to be anything of note. There's only a `scanf` call and 2 `printf` calls (both of which have already been seen) but nothing immediately jumps out. There does seem to be a comparison at some point with the `je` instruction, but no obvious comparison values. As there is nothing else to go on, seeing what functions are in the program might be helpful - nothing is called by `main()`, but that doesn't mean that there isn't anything that could give a hint to the solution. \
+Inspecting this disassembly, there doesn't seem to be anything of note. There are only standard function calls (`printf` and `scanf`), with no custom functions called. However, to be sure that there are no custom functions, we can list all the defined functions using `info func`. Although nothing is called by `main`, a debug function or something may still exist in the binary that we may be able to interact with. \
 ![functions](images/functions.png)
 
-The program, as expected, has a lot of functions due to the previously identified static linking. However, after going through the whole list, there is one function that stood out - `get_flag()`. This is not part of any library and not called by `main` so its purpose isn't clear, but it's worth investigating. For now, disassembling it seems like the natural next step. \
-![work](images/flag.png)
+As expected, there are a lot of functions due to the previously identified static linking. This has created a lot of noise, which is the same problem we had when dumping the strings in the binary. After going through the whole list, there is a function that stood out; the binary defines a function called `get_flag`. This is not part of any library and not called by `main` so its purpose isn't clear, so this is worth investigating further. To see what it does, we can disassemble it using `disas get_flag`. \
+![flag](images/flag.png)
 
-This function seems to be doing quite a bit more work than `main`. There are some `putchar` function calls, which seems like a natural place for the flag to be. Although this function is not called from `main`, it doesn't need to be. The `rip` register, which stores the address for the next instruction to execute, can be directly manipulated using `gef`. By setting `rip` to the start of this function, we can execute the function and see what it does. \
+This functions appears to be doing quite a bit more work than `main` does. There are several `putchar` function calls, which is likely where the flag is printed. Although this function is not called from `main`, it doesn't need to be; we can directly manipulate the `rip` register, which stores the memory address for the next instruction to execute, using our debugger. This is done using `set $rip=get_flag`, which will cause the `get_flag` function to be executed. \
 ![rip](images/rip.png)
 
-This prints the flag immediately with no other work required. This function would have never been found without reverse engineering it, so this binary has been completely reverse engineered.
+This prints an extremely large value, beginning with `p = `. Although this currently means nothing to us, the dashboard says that the information gathered from the files can be combined in some way in order to gain access to the system. Consequently, we need to try and find the vulnerability in the other file in order to see how this value can be used.
