@@ -34,6 +34,7 @@ RUN chmod 6711 /home/sysmaint/create_job
 RUN mkdir -p /run/sshd && ssh-keygen -A
 RUN mkdir -p /home/testuser/.ssh && chown testuser:test /home/testuser/.ssh && chmod 700 /home/testuser/.ssh
 COPY --chown=testuser:test public_key.pub /home/testuser/.ssh/authorized_keys
+RUN chmod 600 /home/testuser/.ssh/authorized_keys
 
 # Expose the SSH port
 EXPOSE 22

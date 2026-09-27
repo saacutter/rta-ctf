@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, session, make_response, jsonify, url_for
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlparse
 import sqlite3
 import os
 import base64
@@ -499,7 +499,7 @@ def team_bravo_switch_account():
 
 @app.route("/login/team-charlie")
 def team_charlie():
-    return redirect(f"http://localhost:8090/")
+    return redirect(f"http://{urlparse(request.base_url).hostname}:8090/")
 
 
 @app.route("/reset-all")
