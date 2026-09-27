@@ -12,7 +12,7 @@ RUN usermod -p '$6$Uy/4xsATe57BrPpV$Q7fdtADJB6Z.aPNlnaijiusIROFCTh0WFg86Eb/t9qDJ
 # THE MISCONFIG: the field-maintenance account was granted passwordless sudo to
 # run `find` as root (meant for filesystem integrity scans). find can spawn a
 # shell via -exec, so this NOPASSWD rule is a full root escalation (GTFOBins).
-RUN echo "${LOWUSER} ALL=(root) NOPASSWD: /usr/bin/find" > /etc/sudoers.d/acc-maint \
+RUN echo "fieldtech ALL=(root) NOPASSWD: /usr/bin/find" > /etc/sudoers.d/acc-maint \
  && chmod 440 /etc/sudoers.d/acc-maint \
  && visudo -cf /etc/sudoers.d/acc-maint
 

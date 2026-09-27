@@ -6,7 +6,12 @@ services:
     ports:
       - "5005:5005" 
       - "22:22"
+      - "23:23"
       - "2121:2121"
+      - "5006:5006"
+      - "8080:8080"
+      - "8081:8081"
+      - "8090:8090"
       - "30000-30009:30000-30009"
     environment:
       - SECRET_KEY=${SECRET_KEY}
@@ -17,31 +22,29 @@ services:
 
   # Path 1 
   adcp-web:
-    build:
-      context: ./alpha/adc
+    build: ./alpha/adc
     container_name: adcp-web
-    ports:
-      - "8080:8080"
+    network_mode: "service:aerospace-web"
     restart: unless-stopped
 
   aerospace-ftp:
     build: ./alpha/ftp
+    container_name: aerospace-ftp
     network_mode: "service:aerospace-web"
     restart: unless-stopped
 
-  ssh:
+  aerospace-ssh:
     build: ./alpha/ssh
+    container_name: aerospace-ssh
     network_mode: "service:aerospace-web"
     restart: unless-stopped
 
 
   # Path 2
   flc-web-portal:
-    build:
-      context: ./bravo/flc
+    build: ./bravo/flc
     container_name: flc-web-portal
-    ports:
-      - "5006:5006"
+    network_mode: "service:aerospace-web"
     restart: unless-stopped
 
 
@@ -53,8 +56,7 @@ services:
     environment:
       NETWORK_FLAG: "CITS3006{l4A5p3MGYr}"
       HORIZONTAL_FLAG: "CITS3006{2cXVYDsVXj}"
-    ports:
-      - "8090:8090"
+    network_mode: "service:aerospace-web"
     restart: unless-stopped
 
   acc-router:
@@ -62,9 +64,7 @@ services:
       context: charlie/step3-warhead-router
       args:
         FLAG: "CITS3006{24n4CBiT2K}"
-    ports:
-      - "23:23"
-      - "8081:8081"
+    network_mode: "service:aerospace-web"
     restart: unless-stopped
 
   acc-armctl:

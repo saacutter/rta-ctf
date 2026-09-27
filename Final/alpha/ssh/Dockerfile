@@ -30,6 +30,11 @@ RUN chmod 0644 /etc/cron.d/archive_jobs
 COPY --chown=root:root create_job /home/sysmaint/create_job
 RUN chmod 6711 /home/sysmaint/create_job
 
+# Create the necessary files for SSH
+RUN mkdir -p /run/sshd && ssh-keygen -A
+RUN mkdir -p /home/testuser/.ssh && chown testuser:test /home/testuser/.ssh && chmod 700 /home/testuser/.ssh
+COPY --chown=testuser:test public_key.pub /home/testuser/.ssh/authorized_keys
+
 # Expose the SSH port
 EXPOSE 22
 CMD service cron start && /usr/sbin/sshd -D

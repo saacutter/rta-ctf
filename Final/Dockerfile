@@ -12,10 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ .
 EXPOSE 5005
 
-# Copy the entrypoint script to the machine
-COPY entrypoint.sh /usr/local/bin/entrypoint
-RUN sed -i 's/\r$//' /usr/local/bin/entrypoint && \
-    chmod 700 /usr/local/bin/entrypoint && \
-    chown root:root /usr/local/bin/entrypoint
-
-CMD ["/usr/local/bin/entrypoint"]
+CMD cd /app && python3 app.py
