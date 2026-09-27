@@ -75,3 +75,17 @@ services:
     ports:
       - "2022:22"
     restart: unless-stopped
+
+  # Path 1 -- AI prompt-injection assistant (Zarin)
+  aria-portal:
+    build:
+      context: ./alpha/ai
+    container_name: aria-portal
+    environment:
+      ARIA_PASSCODE: "ADRJ-6UDP-BRHD"
+      ARIA_FLAG: "CITS3006{LFJkvM1LVy}"
+      ARIA_NEXT_USER: "sysmaint"
+      ARIA_NEXT_PASS: "ytEfgh2aCLTT"
+    ports:
+      - "8095:8095"
+    restart: unless-stopped
