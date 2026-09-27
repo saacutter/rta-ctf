@@ -149,8 +149,7 @@
 
 <main>
 
-  <h1>TEAM ALPHA </h1>
-  <p class="subtitle">Subtitle.</p>
+  <h1>TEAM ALPHA</h1>
 
   <div class="card">
 
@@ -164,6 +163,10 @@
           <div class="note-title">RE: Breach Alert</div>
           <span>Looks like the binary wasn't the only thing left behind in the breach; an encrypted file was also left on the file system. I have no idea what it's supposed to be, but it appears to be communication from the attacker (possibly accidentally left behind). I have collected the messages into a single file for analysis, can someone take a look at it ASAP?</span>
           <a class="btn" href="{{ url_for('static', filename='uploads/rsa.enc') }}" download>⇩&nbsp;rsa.enc</a>
+        </div>
+        <div class="note">
+          <div class="note-title">Open Port</div>
+          <span>A recent security audit showed that the server has an open port running FTP. Not sure if this is supposed to be there since it's not in the standard port range, paging IT to take a look at it.</span>
         </div>
         <div class="note">
           <div class="note-title">Incident Follow-Up</div>

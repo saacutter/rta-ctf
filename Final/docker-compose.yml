@@ -6,6 +6,8 @@ services:
     ports:
       - "5005:5005" 
       - "22:22"
+      - "2121:2121"
+      - "30000-30009:30000-30009"
     environment:
       - SECRET_KEY=${SECRET_KEY}
     volumes:
@@ -24,11 +26,7 @@ services:
 
   aerospace-ftp:
     build: ./alpha/ftp
-    ports:
-      - "2121:2121"
-      - "30000-30009:30000-30009"
-    environment:
-      FTP_PUBLIC_HOST: ${FTP_PUBLIC_HOST:-}
+    network_mode: "service:aerospace-web"
     restart: unless-stopped
 
 

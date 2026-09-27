@@ -325,6 +325,54 @@
     \vspace{1em}
 
     \subsection*{FTP Misconfiguration (Dhul)}
+        On the Team Alpha dashboard, there is a note titled ``Open Port'' which
+        states that the server has an open port running FTP. We don't know how
+        recent this note is, but we can try seeing if we can access this FTP
+        server regardless. The note says it is not in the standard port range,
+        so we can scan every port on the web server's IP to see if we can find
+        anything. This can be done using \texttt{nmap\ -p\ 0-65535\ 172.18.0.5}
+        (where 172.18.0.5 was the web app's IP address while writing this).
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={scan}]{Vulnerabilities/Path 1/FTP/images/scan.png}
+        \end{center}
+
+        This scan has identified three different services; SSH on port 22, FTP
+        on port 2121, and the web app on port 5005. The FTP port on 2121 lines
+        up with the information about there being an open FTP port outside the
+        standard range, so this seems to be our target. We can attempt to
+        connect to this server using \texttt{ftp\ 172.18.0.5\ 2121}.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={connection}]{Vulnerabilities/Path 1/FTP/images/connection.png}
+        \end{center}
+
+        Unfortunately, this server is asking for a username and password which
+        we do not have. However, by default, FTP servers often have an
+        ``anonymous'' login that doesn't require a password. Normally this is
+        disabled for security reasons, but this is worth trying anyway just to
+        see if we can advance.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={login}]{Vulnerabilities/Path 1/FTP/images/login.png}
+        \end{center}
+
+        Surprisingly, this login attempt was successful and we are now connected
+        to the FTP server. At this point we can explore to see what files are
+        stored on the server, as there may be some sensitive information that we
+        can find. The first thing to do would be to list the files on the server
+        to see what we can find, which we can do by sending \texttt{ls}.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={list}]{Vulnerabilities/Path 1/FTP/images/list.png}
+        \end{center}
+
+        This has listed a single file called \texttt{research\_notes.txt}. We
+        can download this file to our local system using
+        \texttt{get\ research\_notes.txt} and reading it to see what it says.
+        \begin{center}
+            \includegraphics[scale=0.5]{Vulnerabilities/Path 1/FTP/images/get.png}
+        \end{center}
+
+        After reading the research notes, we can see that we now have access to
+        the flag which is\\ 
+        \texttt{FLAG\{4n0nym0us\_ftp\_3xp0sur3\}}.
 
     \vspace{1em}
 
