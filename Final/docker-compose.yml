@@ -7,13 +7,20 @@ services:
       - "5005:5005"
       - "5006:5006"
       - "22:22"
-      - "2121:2121"
-      - "30000-30009:30000-30009"
     environment:
       - SECRET_KEY=${SECRET_KEY}
     volumes:
       - ./app/database.db:/app/database.db
-      - ./app/ftp_share:/app/ftp_share
+    restart: unless-stopped
+
+  # FTP is discoverable on the same host IP, with a separate filesystem.
+  aerospace-ftp:
+    build: ./ftp
+    ports:
+      - "2121:2121"
+      - "30000-30009:30000-30009"
+    environment:
+      FTP_PUBLIC_HOST: ${FTP_PUBLIC_HOST:-}
     restart: unless-stopped
 
   # Path 1 
