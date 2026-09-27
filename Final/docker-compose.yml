@@ -29,6 +29,11 @@ services:
     network_mode: "service:aerospace-web"
     restart: unless-stopped
 
+  ssh:
+    build: ./alpha/ssh
+    network_mode: "service:aerospace-web"
+    restart: unless-stopped
+
 
   # Path 2
   flc-web-portal:

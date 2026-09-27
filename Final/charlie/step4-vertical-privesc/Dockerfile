@@ -1,21 +1,13 @@
-# Step 4, vertical privilege escalation (sudo misconfiguration + GTFOBins).
-# The last box in my column: you arrive as a low-priv user and escalate to root
-# to read the final flag. (Distinct from Isaac's PATH-hijack VPE and Senaya's
-# tar-wildcard VPE: this one is a NOPASSWD sudo rule on a binary that can be
-# turned into a root shell via GTFOBins.)
+# Use the slim Debian image as the base
 FROM debian:12-slim
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends sudo openssh-server findutils \
- && rm -rf /var/lib/apt/lists/*
+# Install the necessary packages
+RUN apt-get update && apt-get install sudo openssh-server findutils -y --no-install-recommends
+RUN rm -rf /var/lib/apt/lists/*
 
-# The low-privilege user. IN THE FULL CHAIN, Isaac's RE reveals THIS credential;
-# the player SSHes in as this user, then escalates. The password must ONLY come
-# from Isaac's stage (not guessable) so players can't skip him.
-# Creds (given to Isaac):  fieldtech / FieldT3ch_2874
-ARG LOWUSER=fieldtech
-ARG LOWPASS=FieldT3ch_2874
-RUN useradd -m -s /bin/bash ${LOWUSER} && echo "${LOWUSER}:${LOWPASS}" | chpasswd
+# Create the fieldtech user
+RUN useradd -m -s /bin/bash fieldtech
+RUN usermod -p '$6$Uy/4xsATe57BrPpV$Q7fdtADJB6Z.aPNlnaijiusIROFCTh0WFg86Eb/t9qDJUdj/tvT6Dxt2210fomomkon.GtYrXKy/.UbHs0QvO0' fieldtech
 
 # THE MISCONFIG: the field-maintenance account was granted passwordless sudo to
 # run `find` as root (meant for filesystem integrity scans). find can spawn a
