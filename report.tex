@@ -1035,23 +1035,28 @@
 
         Now that we have signed in, we need to perform reconnaissance. The entry
         message says that we have ``a few elevated maintenance rights'' so we
-        should check what we have access to. This involves checking the
+        should check what we have access to, and it also says that some
+        maintenance records are in our home directory which seems like a prime
+        location for a flag. Identifying our access rights involves checking the
         permissions of files in our home directory (with \texttt{ls\ -al}),
         looking for any setuid binaries (with
-        \texttt{find\ /\ -type\ f\ -perm\ -4000\ 2\textgreater{}/dev/null}),
+        \texttt{find\ /\ -type\ f\ -perm\ -4000\ 2\textless{}/dev/null}),
         looking for any capabilities (with
-        \texttt{getcap\ -r\ /\ 2\textgreater{}/dev/null}), and looking for any
+        \texttt{getcap\ -r\ /\ 2\textless{}/dev/null}), and looking for any
         binaries we can run as root (with \texttt{sudo\ -l}).
         \begin{center}
             \includegraphics[scale=0.8]{Vulnerabilities/Path 3/VPE/images/privileges.png}
         \end{center}
 
-        There isn't anything interesting in our home directory, but it looks
-        like there are a few binaries with the setuid bit enabled and a single
-        binary (\texttt{find}) that can be run using \texttt{sudo} with no
-        password. This is actually the most interesting one, and is worth
-        exploring further. We can look at what command line arguments it accepts
-        using \texttt{find\ -\/-help}, as it may have something that can be
+        In our home directory, the only thing of note is the
+        \texttt{disarm-authorization.txt} file which can only be read/written by
+        root; this is likely the maintenance record mentioned in the entry
+        message, so we need to find some way to read it. It looks like there are
+        a few binaries with the setuid bit enabled and a single binary
+        (\texttt{find}) that can be run using \texttt{sudo} with no password.
+        This is actually the most interesting one, and is worth exploring
+        further. We can look at what command line arguments it accepts using
+        \texttt{find\ -\/-help}, as it may have something that can be
         exploited.
         \begin{center}
             \includegraphics[scale=0.8]{Vulnerabilities/Path 3/VPE/images/help.png}
@@ -1070,8 +1075,17 @@
             \includegraphics[keepaspectratio,alt={exec}]{Vulnerabilities/Path 3/VPE/images/exec.png}
         \end{center}
 
-        This has given us a root shell, meaning this attack has been completed
-        successfully.
+        This has given us a root shell, meaning we can know perform actions as
+        root. As we are now root, we can read the
+        \texttt{disarm-authorization.txt} file in our home directory and view
+        its contents.
+        \begin{center}
+            \includegraphics[keepaspectratio,alt={disarm}]{Vulnerabilities/Path 3/VPE/images/disarm.png}
+        \end{center}
+
+        This has revealed the flag, which is \texttt{CITS3006\{xyOTpUwAhd\}}.
+        Consequently, we have successfully raised our privileges to access
+        information we previously were not permitted to access.
 
         \newpage
 
