@@ -16,6 +16,15 @@ services:
       - ./app/ftp_share:/app/ftp_share
     restart: unless-stopped
 
+  # Path 1 
+  adcp-web:
+    build:
+      context: ./adc
+    container_name: adcp-web
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
   # Path 3
   acc-console:
     build:
