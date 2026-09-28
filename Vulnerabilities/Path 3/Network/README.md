@@ -29,3 +29,5 @@ Unexpectedly, it seems like ` ` is the invalid character. Fortunately, there is 
 ![finale](images/finale.png)
 
 This has printed the contents of the file, allowing us to see that the flag for this challenge is `CITS3006{24n4CBiT2K}`.
+
+The underlying flaw is OS command injection: the console builds a shell command from user-supplied input (the ping target) and runs it without proper sanitisation, so shell features can be smuggled in to execute arbitrary commands as the service. The character blacklist was insufficient because the shell itself provides ways around it, such as `${IFS}` for whitespace and `$()` for command substitution. It is mitigated by avoiding a shell entirely and calling the target program directly with an argument array, validating input against a strict allowlist, and running the service with least privilege.

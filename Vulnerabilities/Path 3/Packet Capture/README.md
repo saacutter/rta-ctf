@@ -28,3 +28,5 @@ After authenticating, these credentials were accepted and we are brought to an o
 ![panel](images/panel.png)
 
 This has revealed the flag for the challenge, which is `CITS3006{l4A5p3MGYr}`.
+
+The vulnerability here is the transmission of credentials over an unencrypted channel. The client authenticated by attaching its identity in a custom header whose value was only base64-encoded, which is a reversible encoding and not encryption, so anyone able to capture the traffic can recover the credentials in full; the rejected session shown alongside the accepted one also leaks which credentials are valid. This is mitigated by carrying all authentication over TLS, never placing credentials in custom headers, and using session tokens that cannot be replayed.

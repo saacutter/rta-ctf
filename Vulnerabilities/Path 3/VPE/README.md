@@ -14,3 +14,5 @@ This has given us a root shell, meaning we can know perform actions as root. As 
 ![disarm](images/disarm.png)
 
 This has revealed the flag, which is `CITS3006{xyOTpUwAhd}`. Consequently, we have successfully raised our privileges to access information we previously were not permitted to access.
+
+The vulnerability is a sudo misconfiguration: granting passwordless sudo on `find` is equivalent to granting a root shell, because `find`'s `-exec` option can launch an arbitrary command that then runs with root privileges (a known GTFOBins technique). It is mitigated by following least privilege in the sudoers policy and never granting sudo on binaries that can execute other programs or escape to a shell.
