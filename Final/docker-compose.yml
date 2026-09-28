@@ -7,11 +7,13 @@ services:
       - "5005:5005" 
       - "22:22"
       - "23:23"
+      - "2022:2022"
       - "2121:2121"
       - "5006:5006"
       - "8080:8080"
       - "8081:8081"
       - "8090:8090"
+      - "8095:8095"
       - "30000-30009:30000-30009"
     environment:
       - SECRET_KEY=${SECRET_KEY}
@@ -36,6 +38,18 @@ services:
   aerospace-ssh:
     build: ./alpha/ssh
     container_name: aerospace-ssh
+    network_mode: "service:aerospace-web"
+    restart: unless-stopped
+
+  aria-portal:
+    build:
+      context: ./alpha/ai
+    container_name: aria-portal
+    environment:
+      ARIA_PASSCODE: "ADRJ-6UDP-BRHD"
+      ARIA_FLAG: "CITS3006{LFJkvM1LVy}"
+      ARIA_NEXT_USER: "sysmaint"
+      ARIA_NEXT_PASS: "ytEfgh2aCLTT"
     network_mode: "service:aerospace-web"
     restart: unless-stopped
 
@@ -72,20 +86,5 @@ services:
       context: charlie/step4-vertical-privesc
       args:
         FLAG: "CITS3006{xyOTpUwAhd}"
-    ports:
-      - "2022:22"
-    restart: unless-stopped
-
-  # Path 1 -- AI prompt-injection assistant (Zarin)
-  aria-portal:
-    build:
-      context: ./alpha/ai
-    container_name: aria-portal
-    environment:
-      ARIA_PASSCODE: "ADRJ-6UDP-BRHD"
-      ARIA_FLAG: "CITS3006{LFJkvM1LVy}"
-      ARIA_NEXT_USER: "sysmaint"
-      ARIA_NEXT_PASS: "ytEfgh2aCLTT"
-    ports:
-      - "8095:8095"
+    network_mode: "service:aerospace-web"
     restart: unless-stopped

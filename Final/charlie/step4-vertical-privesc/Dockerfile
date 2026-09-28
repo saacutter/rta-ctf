@@ -29,10 +29,11 @@ COPY motd /etc/motd
 
 RUN mkdir -p /run/sshd && ssh-keygen -A \
  && sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config \
- && printf '\nPrintMotd yes\n' >> /etc/ssh/sshd_config
+ && printf '\nPrintMotd yes\n' >> /etc/ssh/sshd_config \
+ && sed -i 's/#Port 22/Port 2022/' /etc/ssh/sshd_config
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 22
+EXPOSE 2022
 CMD ["/entrypoint.sh"]
