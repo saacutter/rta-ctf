@@ -29,7 +29,9 @@ RUN chmod 0644 /etc/cron.d/archive_jobs
 
 # Copy the create_job binary to the system
 COPY --chown=root:root create_job /home/sysmaint/create_job
-RUN chmod 6711 /home/sysmaint/create_job
+RUN chmod 6755 /home/sysmaint/create_job
+COPY --chown=root:root authorisation-key.txt /home/sysmaint/authorisation-key.txt
+RUN chmod 600 /home/sysmaint/authorisation-key.txt
 
 # Create the necessary files for SSH
 RUN mkdir -p /run/sshd && ssh-keygen -A
