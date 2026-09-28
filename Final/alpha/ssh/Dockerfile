@@ -10,6 +10,7 @@ RUN groupadd -g 10001 test && useradd -m -r -u 10001 -g test testuser
 RUN chown testuser:test /home/testuser && chmod 700 /home/testuser
 
 # Copy the flag to the test user
+COPY --chown=testuser:test research_notes.txt /home/testuser/research_notes.txt
 
 # Create a user for the VPE challenge
 RUN groupadd -g 10000 sysadmin && useradd -m -r -u 10000 -g sysadmin sysmaint
