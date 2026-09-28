@@ -35,6 +35,7 @@ RUN cp /srv/flc/app/scripts/svc-01-notice.sh   /opt/flc/scripts/svc-01-notice.sh
     cp /srv/flc/app/scripts/svc-06-archive.sh  /opt/flc/scripts/svc-06-archive.sh && \
     cp /srv/flc/app/scripts/svc-07-health.sh /opt/flc/scripts/svc-07-health.sh
 
+RUN sed -i 's/\r$//' /opt/flc/scripts/*.sh
 RUN chmod 755 /opt/flc/scripts
 RUN chmod 755 /opt/flc/scripts/*.sh
 RUN chown root:root /opt/flc/scripts /opt/flc/scripts/*.sh
