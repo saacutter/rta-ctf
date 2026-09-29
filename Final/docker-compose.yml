@@ -5,7 +5,7 @@ services:
     container_name: aerospace-web
     ports:
       - "5005:5005" 
-      - "22:22"
+      - "${SSH_PORT:-22}:22"
       - "23:23"
       - "2022:2022"
       - "2121:2121"
