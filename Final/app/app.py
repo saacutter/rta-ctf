@@ -244,7 +244,7 @@ BRAVO_ACCOUNTS = {
     "castillo": {
         "name": "R. Castillo",
         "notes": [
-            "FLAG\{1*8ja&^@IHj\}",
+            "FLAG{1*8ja&^@IHj}",
             "Approved fuel allocation for Bravo flight line, Q3.",
             "Reminder: J. Okafor still hasn't submitted the maintenance sign-off from last week.",
             "I typed something somewhere in the browser and somehow my account got changed to J. Okafor. Remember to tell IT"
@@ -253,7 +253,7 @@ BRAVO_ACCOUNTS = {
     "okafor": {
         "name": "J. Okafor",
         "notes": [
-            "FLAG\{U1H!@SDBAI\}",
+            "FLAG{U1H!@SDBAI}",
             "Maintenance sign-off attached separately — sent it to the wrong inbox twice, sorry.",
             "Note to self: stop leaving my session logged in on the shared terminal.",
             "SIGN-IN DETAILS — username: jsmith | password: warehouse#123"
