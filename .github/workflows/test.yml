@@ -1,0 +1,19 @@
+name: Test
+
+on:
+  push:
+  workflow_dispatch: 
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Build container
+        run: docker compose up --build -d
+      
+      - name: Check container exists
+        run: docker compose ps
