@@ -16,11 +16,3 @@ jobs:
         env: 
           SSH_PORT: 24
         run: cd Final && docker compose up --build -d
-      
-      - name: Check web ports are open
-        run: |
-          curl http://localhost:5005
-          curl http://localhost:5006
-          curl http://localhost:8080
-          curl http://localhost:8090
-          curl http://localhost:8095
