@@ -15,6 +15,7 @@ services:
       - "8090:8090"
       - "8095:8095"
       - "30000-30009:30000-30009"
+      - "8000:8000"
     environment:
       - SECRET_KEY=${SECRET_KEY}
     volumes:
@@ -86,5 +87,16 @@ services:
       context: charlie/step4-vertical-privesc
       args:
         FLAG: "CITS3006{xyOTpUwAhd}"
+    network_mode: "service:aerospace-web"
+    restart: unless-stopped
+
+  # Final portal
+  airspace-portal:
+    build: ./portal
+    container_name: airspace-portal
+    environment:
+      ALPHA_CODE:   "${ALPHA_CODE:-FLAG{ADRJ-6UDP-BRHD}}"
+      BRAVO_CODE:   "${BRAVO_CODE:-FLAG{tH3_f1LTa_w4s_0NLY_4_SUgg3sT10N}}"
+      CHARLIE_CODE: "${CHARLIE_CODE:-CITS3006{xyOTpUwAhd}}"
     network_mode: "service:aerospace-web"
     restart: unless-stopped
